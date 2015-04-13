@@ -1,7 +1,9 @@
 package avem.jdbc.backend;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.jdbc.test.AbstractKeyObjectSQLDAOTest;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.jdbc.mysql.backend.BackendDAO;
+import eu.ginere.jdbc.mysql.backend.BackendInfo;
+import eu.ginere.jdbc.mysql.dao.test.AbstractKeyObjectSQLDAOTest;
 
 public class BackendDAOTest2 extends AbstractKeyObjectSQLDAOTest<BackendInfo>{
 	

@@ -1,4 +1,4 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,8 +12,8 @@ import java.util.Map;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.KeyDTO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.KeyDTO;
 
 /**
  * @author ventura

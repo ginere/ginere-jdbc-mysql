@@ -1,12 +1,12 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.KeyDTO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.KeyDTO;
 
 /**
  * @author ventura
@@ -83,11 +83,15 @@ public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends 
 		try {				
 			PreparedStatement pstmInsert = getPrepareStatement(connection,
 															   query);
-			setInsertStatementFromSequence(pstmInsert,id,interf,query);
-			
-			executeUpdate(pstmInsert, query);
-
-			return id;
+            try {
+                setInsertStatementFromSequence(pstmInsert,id,interf,query);
+                
+                executeUpdate(pstmInsert, query);
+                
+                return id;
+            }finally{
+                close(pstmInsert);
+            }
 		} catch (DaoManagerException e) {
 			String error = "Insert object:'" + interf + 
 				"' id:'" + id+
@@ -114,9 +118,7 @@ public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends 
 		try {
 			PreparedStatement pstm= connection.prepareStatement(query);
 			try {
-				pstm.executeUpdate();
-			} catch (SQLException e) {
-				throw new DaoManagerException("While executeUpdate for:'"+query+"'",e);
+				executeUpdate(pstm,query);
 			} finally {
 				close(pstm);
 			}
@@ -124,12 +126,16 @@ public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends 
 			pstm= connection.prepareStatement("SELECT LAST_INSERT_ID()");
 			try {
 				ResultSet rset=pstm.executeQuery("SELECT LAST_INSERT_ID()");
-				if(rset.next()){
-					return rset.getLong(1);
-				}else{
-					throw new DaoManagerException("While executeInsertQuery LAST_INSERT_ID return no value!!!");
-				}
-			} finally {
+                try {
+                    if(rset.next()){
+                        return rset.getLong(1);
+                    }else{
+                        throw new DaoManagerException("While executeInsertQuery LAST_INSERT_ID return no value!!!");
+                    }
+                }finally{
+                    close(rset);
+                }
+            } finally {
 				close(pstm);
 			}
 
@@ -150,12 +156,16 @@ public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends 
 
 
 	@Override
-	protected void setInsertStatement(PreparedStatement pstm, T obj,
-			String query) throws DaoManagerException {
+	protected void setInsertStatement(PreparedStatement pstm, 
+                                      T obj,
+                                      String query) throws DaoManagerException {
 		throw new IllegalAccessError("Why this function is called?");	
 	}
 	
-	protected void setInsertStatementFromSequence(PreparedStatement pstm,String id,T obj,String query) throws DaoManagerException{
+	protected void setInsertStatementFromSequence(PreparedStatement pstm,
+                                                  String id,
+                                                  T obj,
+                                                  String query) throws DaoManagerException{
 		set(pstm,1, id, query);
 		setInsertColumns(pstm, obj, 2,query);
 	}

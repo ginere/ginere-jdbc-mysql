@@ -1,4 +1,4 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,23 +12,27 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.KeyDTO;
-import avem.common.util.enumeration.SQLEnum;
-import avem.common.util.file.FileId;
-import avem.common.util.i18n.I18NLabel;
-import avem.jdbc.JdbcManager;
-import avem.jdbc.backend.BackEndInterface;
-import avem.jdbc.backend.BackendInfo;
-import avem.jdbc.backend.BackendManager;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.base.util.enumeration.SQLEnum;
+import eu.ginere.base.util.file.FileId;
+import eu.ginere.base.util.i18n.I18NLabel;
+import eu.ginere.jdbc.mysql.MySQLDataBase;
+//import eu.ginere.jdbc.mysql.ThreadLocalConection;
+import eu.ginere.jdbc.mysql.backend.BackEndInterface;
+import eu.ginere.jdbc.mysql.backend.BackendInfo;
+import eu.ginere.jdbc.mysql.backend.BackendManager;
 
 
 /**
  * Clase Madre para todos los datos de insercion en base de datos
  *
  */
-public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInterface {
+public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndInterface {
 	static final Logger log = Logger.getLogger(AbstractSQLDAO.class);
+
+	private MySQLDataBase dataBase=null;
+
 
 	// public final BackendInfo backendInfo;
 	private final String createQueryArray[][];
@@ -39,13 +43,9 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 
 	protected final String DELETE_ALL_QUERY;
 
-	//	public static boolean GLOBAL_USE_THREADLOCAL_CONECTION=false;
-	//	private static ThreadLocal<ThreadLocalConection> connection=new ThreadLocal<ThreadLocalConection>();
-	
-//	private static ThreadLocal<Hashtable<String, PreparedStatement> > statementCachedThreadLocal=new ThreadLocal<Hashtable<String, PreparedStatement> >();
-//	private final static Hashtable<String, PreparedStatement> statementCached=new Hashtable<String, PreparedStatement>();
-
 	protected AbstractSQLDAO(String tableName,String createQueryArray[][],String deleteQueryArray[]) {
+		this.dataBase=MySQLDataBase.DEFAULT_DATABASE;		
+
 		this.createQueryArray=createQueryArray;
 		this.tableName=tableName;
 		
@@ -58,6 +58,8 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 	}
 	
 	protected AbstractSQLDAO(String tableName,String createQueryArray[][]) {
+		this.dataBase=MySQLDataBase.DEFAULT_DATABASE;		
+
 		this.createQueryArray=createQueryArray;
 		this.tableName=tableName;
 		
@@ -66,6 +68,10 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		this.deleteQueryArray=null;
 		
 		BackendManager.subscrive(this);
+	}
+
+	public void setDataBase(MySQLDataBase dataBase){
+		this.dataBase=dataBase;		
 	}
 	
 	protected void createIndexes(String indexes[][]){
@@ -85,9 +91,12 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 								log.info("Creating index:"+indexName+" ....");
 								PreparedStatement pstm = getPrepareStatement(connection,
 															indexQuery);
-			
-								executeUpdate(pstm, indexQuery);
-								log.info("Index:"+indexName+" CREATED.");
+                                try {
+                                    executeUpdate(pstm, indexQuery);
+                                    log.info("Index:"+indexName+" CREATED.");
+                                }finally {
+                                    close(pstm);
+                                }
 							}catch (DaoManagerException e) {
 								log.error("While creating Index:"+indexName,e);
 							}
@@ -119,9 +128,12 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 								log.info("Dropping index:"+indexName+" ....");
 								PreparedStatement pstm = getPrepareStatement(connection,
 															indexQuery);
-			
-								executeUpdate(pstm, indexQuery);
-								log.info("Index:"+indexName+" DROPED.");
+                                try {
+                                    executeUpdate(pstm, indexQuery);
+                                    log.info("Index:"+indexName+" DROPED.");
+                                }finally {
+                                    close(pstm);
+                                }
 							}catch (DaoManagerException e) {
 								log.error("While dropping Index:"+indexName,e);
 							}
@@ -147,9 +159,12 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,
 														 query);
-			setString(pstm, 1, value, query);
-			executeUpdate(pstm, query);
-
+            try {
+                setString(pstm, 1, value, query);
+                executeUpdate(pstm, query);
+            }finally {
+                close(pstm);
+            }            
 		} catch (DaoManagerException e) {
 			String error = "query:"+query;
 			throw new DaoManagerException(error, e);
@@ -165,8 +180,11 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 			PreparedStatement pstm = getPrepareStatement(connection,
 														 query);
 			
-			executeUpdate(pstm, query);
-
+            try {
+                executeUpdate(pstm, query);
+            }finally {
+                close(pstm);
+            }
 		} catch (DaoManagerException e) {
 			String error = "query:"+query;
 			throw new DaoManagerException(error, e);
@@ -235,8 +253,11 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 				try {
 					PreparedStatement pstm = getPrepareStatement(connection,
 																 query);
-		
-					executeUpdate(pstm, query);
+                    try {
+                        executeUpdate(pstm, query);
+                    }finally {
+                        close(pstm);
+                    }
 				} catch (DaoManagerException e) {
 					throw new DaoManagerException(query, e);
 				}
@@ -276,100 +297,10 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		}
 		
 	}
-//	protected static long getNextValueFromSecuence(String sequenceName)
-//			throws DaoManagerException {
-//		long time = 0;
-//		if (log.isInfoEnabled()) {
-//			time = System.currentTimeMillis();
-//		}
-//
-//		StringBuilder buffer = new StringBuilder();
-//
-//		buffer.append("SELECT ");
-//		buffer.append(sequenceName);
-//		buffer.append(".nextval from dual");
-//
-//		String query = buffer.toString();
-//
-//		Connection connection=getConnection();
-//			
-//		try {
-//			PreparedStatement pstm = connection.prepareStatement(query);
-//
-//			long value = getLongFromQuery(pstm, query, -1);
-//			if (value < 0) {
-//				throw new DaoManagerException(
-//						"No se pudo obtener un valor de la secuencia:'"
-//								+ sequenceName + "'");
-//			} else {
-//				return value;
-//			}
-//		} catch (SQLException e) {
-//			throw new DaoManagerException("While executing query:'" + query
-//					+ "' for secuence:'" + sequenceName + "'", e);
-//		} finally {
-//			closeConnection(connection);
-//			if (log.isInfoEnabled()) {
-//				log.info("query:'" + query + "' executed in:"
-//						+ (System.currentTimeMillis() - time) + " mill");
-//			}
-//		}
-//	}
-//
-//	protected static long getNextValueFromSecuence(String sequenceName)throws DaoManagerException {
-//		Connection connection=getConnection();
-//			
-//		try {
-//			return getNextValueFromSecuence(connection,sequenceName);
-//		} finally {
-//			closeConnection(connection);
-//		}
-//	}
-//
-//
-//	protected static long getNextValueFromSecuence(Connection connection,String sequenceName)throws DaoManagerException {
-//		long time = 0;
-//		if (log.isInfoEnabled()) {
-//			time = System.currentTimeMillis();
-//		}
-//
-//		StringBuilder buffer = new StringBuilder();
-//
-//		buffer.append("SELECT ");
-//		buffer.append(sequenceName);
-//		buffer.append(".nextval from dual");
-//
-//		String query = buffer.toString();
-//
-//		try {
-//			PreparedStatement pstm = connection.prepareStatement(query);
-//			try {
-//				long value = getLongFromQuery(pstm, query, -1);
-//				if (value < 0) {
-//					throw new DaoManagerException(
-//												  "No se pudo obtener un valor de la secuencia:'"
-//												  + sequenceName + "'");
-//				} else {
-//					return value;
-//				}
-//			}finally{
-//				pstm.close();
-//			}
-//		} catch (SQLException e) {
-//			throw new DaoManagerException("While executing query:'" + query
-//					+ "' for secuence:'" + sequenceName + "'", e);
-//		} finally {
-////          Eliminamos el comentario porque el log ya lo hace la funcion que ejecuta la query 
-////			if (log.isInfoEnabled()) {
-////				log.info("query:'" + query + "' executed in:"
-////						+ (System.currentTimeMillis() - time) + " mill");
-////			}
-//		}
-//	}
-
 	protected static int getIntFromQuery(PreparedStatement pstm, 
 										 String query,
 										 int defaultValue) throws DaoManagerException {
+        /*
 		long time = 0;
 		if (log.isInfoEnabled()) {
 			time = System.currentTimeMillis();
@@ -399,12 +330,15 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
 		}
+        */
+		return MySQLDataBase.getIntFromQuery(pstm, query, defaultValue);
 	}
 	
 
 	protected static long getLongFromQuery(PreparedStatement pstm, 
-										 String query,
-										 long defaultValue) throws DaoManagerException {
+                                           String query,
+                                           long defaultValue) throws DaoManagerException {
+        /*
 		long time = 0;
 		if (log.isInfoEnabled()) {
 			time = System.currentTimeMillis();
@@ -434,10 +368,14 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
 		}
+        */
+		return MySQLDataBase.getLongFromQuery(pstm, query, defaultValue);
 	}
 	
-	protected static String getStringFromQuery(PreparedStatement pstm, String query,
-			String defaultValue) throws DaoManagerException {
+	protected static String getStringFromQuery(PreparedStatement pstm, 
+                                               String query,
+                                               String defaultValue) throws DaoManagerException {
+        /*
 		long time = 0;
 		if (log.isInfoEnabled()) {
 			time = System.currentTimeMillis();
@@ -464,6 +402,8 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
 		}
+        */
+		return MySQLDataBase.getString(pstm,query,defaultValue);
 	}
 	
 	
@@ -472,9 +412,13 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection, query);
 
-			setString(pstm, 1, value, query);
-
-			return hasNext(pstm, query);
+            try {
+                setString(pstm, 1, value, query);
+                
+                return hasNext(pstm, query);
+            }finally{
+                close(pstm);
+            }
 		} catch (DaoManagerException e) {
 			String error = "query:'"+query+"' id:'" + value + "'";
 
@@ -500,8 +444,11 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		}
 		try {
 			ResultSet rset = pstm.executeQuery();
-
-			return rset.next();
+            try {
+                return rset.next();
+            }finally{
+                close(rset);
+            }
 		} catch (SQLException e) {
 			throw new DaoManagerException("While executing query:'" + query
 					+ "'", e);
@@ -513,8 +460,9 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		}
 	}
 
-	protected static List<String> getStringList(PreparedStatement pstm,
-			String query) throws DaoManagerException {
+	public List<String> getStringList(PreparedStatement pstm,
+                                      String query) throws DaoManagerException {
+        /*
 		long time = 0;
 		if (log.isInfoEnabled()) {
 			time = System.currentTimeMillis();
@@ -537,10 +485,17 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
 		}
+        */
+		if (dataBase==null){
+			throw new DaoManagerException("Data besae connection not initialized");
+		} else  {
+			return dataBase.getStringList(query);
+		}
 	}
 
-	protected static ResultSet executeQuery(PreparedStatement pstm, String query)
-			throws DaoManagerException {
+	protected static ResultSet executeQuery(PreparedStatement pstm, 
+                                            String query)throws DaoManagerException {
+        /*
 		long time = 0;
 		if (log.isInfoEnabled()) {
 			time = System.currentTimeMillis();
@@ -558,11 +513,13 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 				log.info("query:'" + query + "' executed in:"
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
-		}
+            }*/
+		return MySQLDataBase.executeQuery(pstm,query);
 	}
 
-	protected static int executeUpdate(PreparedStatement pstm, String query)
-			throws DaoManagerException {
+	protected static long executeUpdate(PreparedStatement pstm, 
+                                        String query)throws DaoManagerException {
+        /*
 		long time = 0;
 		if (log.isInfoEnabled()) {
 			time = System.currentTimeMillis();
@@ -581,148 +538,38 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 				log.info("query:'" + query + "' executed in:"
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
+        }*/
+
+		return MySQLDataBase.executeUpdate(pstm,query);
+	}
+
+	protected Connection getConnection() throws DaoManagerException {
+        //		return ThreadLocalConection.getConnection(dataSource);
+		if (dataBase==null){
+			throw new DaoManagerException("Data besae connection not initialized");
+		} else  {
+			return dataBase.getConnection();
 		}
 	}
 
-	static protected Connection getConnection() throws DaoManagerException {
-		return ThreadLocalConection.getConnection(dataSource);
-		
-//		if (ThreadLocalConection.useThreadLocal){
-//			return ThreadLocalConection.getConnection()  getThreadLocalConnection();
-//		} else {
-//			if (dataSource == null) {
-//				throw new DaoManagerException("La datasource es null, lo mas probable es que no se haya inicializado correctamente");
-//			} else {
-//				try {
-//					long time = 0;
-//					
-//					if (log.isInfoEnabled()) {
-//						time = System.currentTimeMillis();
-//					}
-//					Connection ret = dataSource.getConnection();
-//					ret.setAutoCommit(true);
-//					if (log.isInfoEnabled()) {
-//						log.info("Connection obtained in:"
-//								 + (System.currentTimeMillis() - time) + " mill");
-//					}
-//					
-//					return ret;
-//				} catch (SQLException e) {
-//					throw new DaoManagerException("Obteniendo la conexion", e);
-//				}
-//			}
-//		}
-	}
-
-
-//	static private Connection getThreadLocalConnection() throws DaoManagerException {
-//		if (!GLOBAL_USE_THREADLOCAL_CONECTION){
-//			return null;
-//		} else {
-//			Connection ret=connection.get();
-//			
-//			if (ret==null){
-//				if (dataSource == null) {
-//					throw new DaoManagerException("La datasource es null, lo mas probable es que no se haya inicializado correctamente");
-//				} else {
-//					try {
-//						log.info("Genrating new threadLocal connection for thread Thread:"+Thread.currentThread().getId());
-//						ret = dataSource.getConnection();
-//						ret.setAutoCommit(true);
-//						connection.set(ret);
-//					}catch (SQLException e) {
-//						throw new DaoManagerException("For thread:"+Thread.currentThread().getId(),e);
-//					}
-//				} 						
-//			}
-//			return ret;
-//		}
-//	}
-
 	static protected void closeConnection(Connection connection) {
-		ThreadLocalConection.close(connection);
-////		if (GLOBAL_USE_THREADLOCAL_CONECTION){
-////			return ;
-////		} else {
-//			try {
-//				long time = 0;
-//				
-//				if (log.isInfoEnabled()) {
-//					time = System.currentTimeMillis();
-//				}
-//				connection.close();
-//				
-//				if (log.isInfoEnabled()) {
-//					log.info("Connection Closed in:"
-//							 + (System.currentTimeMillis() - time) + " mill");
-//				}
-//			} catch (SQLException e) {
-//				log.warn("Clossing conection", e);
-//			}
-////		}
+        //		ThreadLocalConection.close(connection);
+		MySQLDataBase.closeConnection(connection);
 	}
 	
 	static protected void close(PreparedStatement pstm) {
-		ThreadLocalConection.close(pstm);
-////		if (GLOBAL_USE_THREADLOCAL_CONECTION){
-////			return ;
-////		} else {
-//			try {
-//				pstm.close();
-//			} catch (SQLException e) {
-//				log.warn("Clossing conection", e);
-//			}
-////		}
+        //		ThreadLocalConection.close(pstm);
+		MySQLDataBase.close(pstm);
 	}
 	
 	static protected void close(ResultSet rset) {
-		ThreadLocalConection.close(rset);
-////		if (GLOBAL_USE_THREADLOCAL_CONECTION){
-////			return ;
-////		} else {
-//			try {
-//				pstm.close();
-//			} catch (SQLException e) {
-//				log.warn("Clossing conection", e);
-//			}
-////		}
+		MySQLDataBase.close(rset);
+        //		ThreadLocalConection.close(rset);
 	}
 	
-//	private static Hashtable<String, PreparedStatement> getStatementCachedThreadLocal(){
-//		Hashtable<String, PreparedStatement> ret=statementCachedThreadLocal.get();
-//		
-//		if (ret==null){
-//			ret = new Hashtable<String, PreparedStatement>();
-//			statementCachedThreadLocal.set(ret);
-//		}
-//		
-//		return ret;
-//	}
 	
-	protected static PreparedStatement getPrepareStatement(Connection connection,String query) throws DaoManagerException {
-//		try {
-////			if (GLOBAL_USE_THREADLOCAL_CONECTION){
-////				Hashtable<String, PreparedStatement> statementCached=getStatementCachedThreadLocal();
-////				
-////				PreparedStatement ret=statementCached.get(query);
-////			
-////				if (ret==null){
-////					try {
-////						ret=connection.prepareStatement(query);
-////						statementCached.put(query,ret);
-////					} catch (SQLException e) {
-////						throw new DaoManagerException("For thread:"+Thread.currentThread().getId()+" Query:'" + query	+ "'", e);
-////					}
-////				}
-////				
-////				return ret;				
-////			} else {			
-//				return connection.prepareStatement(query);
-////			}
-//		} catch (SQLException e) {
-//			throw new DaoManagerException("Query:'" + query	+ "'", e);
-//		}
-		return ThreadLocalConection.getPrepareStatement(connection, query);
+	protected PreparedStatement getPrepareStatement(Connection connection,String query) throws DaoManagerException {
+		return dataBase.getPrepareStatement(connection,query);
 	}
 
 	protected static void set(PreparedStatement pstm,int poss,Object value,String query) throws DaoManagerException {
@@ -753,12 +600,17 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 			throw new IllegalAccessError("Type :"+value.getClass().getName()+" is not suported");
 		}
 	}	
-	protected static void setString(PreparedStatement pstm,int poss,String value,String query) throws DaoManagerException {
+	protected static void setString(PreparedStatement pstm,
+                                    int poss,
+                                    String value,
+                                    String query) throws DaoManagerException {
+        /*
 		try {
 			pstm.setString(poss,value);
 		} catch (SQLException e) {
 			throw new DaoManagerException("Query:'"+query+"' Value:'" + value	+ "'", e);
-		}
+            }*/
+		MySQLDataBase.setString(pstm,poss,value,query);
 	}
 	
 	protected static void setKeyDTO(PreparedStatement pstm,int poss,KeyDTO dto,String query) throws DaoManagerException {
@@ -819,11 +671,14 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 	}
 	
 	protected static void setInt(PreparedStatement pstm,int poss,int value,String query) throws DaoManagerException {
+        /*
 		try {
 			pstm.setInt(poss,value);
 		} catch (SQLException e) {
 			throw new DaoManagerException("Query:'"+query+"' Value:'" + value	+ "'", e);
 		}
+        */
+		MySQLDataBase.setInt(pstm, poss, value, query);        
 	}
 	
 	protected static void setShort(PreparedStatement pstm,int poss,short value,String query) throws DaoManagerException {
@@ -935,17 +790,21 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 			throw new DaoManagerException("Query:'"+query+"' Value:'NULL'", e);
 		}
 	}
-	public static boolean testConnection() {
+	
+	public boolean testConnection() {
 		try {
 			Connection connection = getConnection();
 			String testQuery="SELECT 1 from DUAL";
 			try {
 				PreparedStatement pstm = getPrepareStatement(connection,
-						testQuery);
+                                                             testQuery);
 	
-				executeQuery(pstm, testQuery);
-				return true;
-	
+                try {
+                    executeQuery(pstm, testQuery);
+                    return true;
+                }finally{
+                    close(pstm);
+                }
 			} finally {
 				closeConnection(connection);
 			}	
@@ -1089,10 +948,12 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 	
 			try {
 				PreparedStatement pstm = getPrepareStatement(connection,query);
-	
-				return getLongFromQuery(pstm, query, 0);
-			} catch (DaoManagerException e) {
-	
+                try {
+                    return getLongFromQuery(pstm, query, 0);
+                }finally{
+                    close(pstm);
+                }
+			} catch (DaoManagerException e) {	
 				throw new DaoManagerException("Count", e);
 			} finally {
 				closeConnection(connection);
@@ -1122,8 +983,11 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 					try {
 						PreparedStatement pstm = getPrepareStatement(connection,
 																	 query);
-			
-						executeUpdate(pstm, query);
+                        try {
+                            executeUpdate(pstm, query);
+                        }finally{
+                            close(pstm);
+                        }
 					} catch (DaoManagerException e) {
 						throw new DaoManagerException(query, e);
 					}
@@ -1143,7 +1007,7 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 	
 	}
 
-	protected static void dropTable(String tableName) throws DaoManagerException{
+	protected void dropTable(String tableName) throws DaoManagerException{
 		Connection connection = getConnection();
 		String query="DROP TABLE "+tableName;
 		try {
@@ -1151,7 +1015,11 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 				PreparedStatement pstm = getPrepareStatement(connection,
 															 query);
 				
-				executeUpdate(pstm, query);
+                try {
+                    executeUpdate(pstm, query);
+                }finally{
+                    close(pstm);
+                }
 			} catch (DaoManagerException e) {
 				throw new DaoManagerException(query, e);
 			}
@@ -1160,12 +1028,21 @@ public abstract class AbstractSQLDAO extends JdbcManager implements BackEndInter
 		}
 	}
 	
-	static public void startThreadLocal() {
-		ThreadLocalConection.startThreadLocal();
+	public void startThreadLocal() throws DaoManagerException {
+		if (dataBase==null){
+			throw new DaoManagerException("Data besae connection not initialized");
+		} else  {
+			 dataBase.startThreadLocal();
+		}		
+        //		ThreadLocalConection.startThreadLocal();
 	}
 
-	static public void endThreadLocal(boolean forzeClean) {
-		ThreadLocalConection.endThreadLocal(forzeClean);
+	public void endThreadLocal(boolean forzeClean) throws DaoManagerException {
+        //		ThreadLocalConection.endThreadLocal(forzeClean);
+		if (dataBase==null){
+			throw new DaoManagerException("Data besae connection not initialized");
+		} else  {
+			MySQLDataBase.endThreadLocal(forzeClean);
+		}
 	}
-
 }

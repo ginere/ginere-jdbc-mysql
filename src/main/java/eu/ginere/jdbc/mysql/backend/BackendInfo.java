@@ -4,11 +4,11 @@
  *
  * $Id: BackendInfo.java,v 1.1 2005/12/30 12:48:21 ventura Exp $
  */
-package avem.jdbc.backend;
+package eu.ginere.jdbc.mysql.backend;
 
 import java.util.Date;
 
-import avem.common.util.dao.cache.impl.AbstractKeyCacheObject;
+import eu.ginere.base.util.dao.cache.impl.AbstractKeyCacheObject;
 
 /**
  *

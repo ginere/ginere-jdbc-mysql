@@ -1,9 +1,9 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import avem.common.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.DaoManagerException;
 
 
 /**

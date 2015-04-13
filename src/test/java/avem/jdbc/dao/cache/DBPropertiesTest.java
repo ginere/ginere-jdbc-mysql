@@ -7,17 +7,17 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
-import avem.jdbc.JdbcManager;
-import avem.jdbc.dao.AbstractSQLDAO;
-import avem.jdbc.properties.DBProperties;
+import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.dao.util.DBProperties;
+import avem.jdbc.MySQLDatabaseUtils;
 
 public class DBPropertiesTest extends TestCase {
 	static final Logger log = Logger.getLogger(DBPropertiesTest.class);
 	
 	private static void setDataSource() throws Exception {
-		DataSource dataSource = JdbcManager.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
+		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
 		
-		JdbcManager.setDataSource(dataSource);
+		MySQLDatabaseUtils.setDataSource(dataSource);
 	}
 
 	@Test

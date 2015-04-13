@@ -1,4 +1,4 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,8 +11,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.KeyDTO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.KeyDTO;
 
 /**
  * @author ventura
@@ -215,8 +215,7 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 						throw new DaoManagerException("Object id:'"+id+"' do not exists");
 					}
 				}finally{
-					// TODO use close(rset) everywhere ...
-					rset.close();
+					close(rset);
 				}
 			}finally{
 				close(pstm);
@@ -254,7 +253,7 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 						return defaultValue;
 					}
 				}finally{
-					rset.close();
+					close(rset);
 				}
 			}finally{
 				close(pstm);
@@ -271,16 +270,23 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		String query=GET_BY_ID_QUERY;
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection, query);
-
-			setString(pstm, 1, id, query);
-
-			ResultSet rset = executeQuery(pstm, query);
-
-			if (rset.next()) {
-				return true;
-			} else {
-				return false;
-			}
+            try {
+                setString(pstm, 1, id, query);
+                
+                ResultSet rset = executeQuery(pstm, query);
+                
+                try {
+                    if (rset.next()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }finally{
+                    close(rset);
+                }
+            }finally{
+                close(pstm);
+            }
 		} catch (SQLException e) {
 			String error = "id:'" + id + "'";
 
@@ -300,15 +306,23 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 
 		try{
 			PreparedStatement pstm = getPrepareStatement(connection,query);			
-			ResultSet rset = executeQuery(pstm,query);
-			
-			List<T> list= new ArrayList<T>(rset.getFetchSize());
-			
-			while (rset.next()){
-				T t=createFromResultSet(rset,query);
-				list.add(t);
-			}
-			return list;
+            try {
+                ResultSet rset = executeQuery(pstm,query);
+                
+                try {
+                    List<T> list= new ArrayList<T>(rset.getFetchSize());
+                    
+                    while (rset.next()){
+                        T t=createFromResultSet(rset,query);
+                        list.add(t);
+                    }
+                    return list;
+                }finally{
+                    close(rset);
+                }
+            }finally{
+                close(pstm);
+            }
 		}catch (SQLException e){
 			String error="Query:'" + query+"'";
 			throw new DaoManagerException(error,e);
@@ -325,8 +339,11 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		String query=GET_ALL_IDS;
 		try{
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-			
-			return getStringList(pstm, query);
+			try {
+                return getStringList(pstm, query);
+            }finally{
+                close(pstm);
+            }
 		}catch (DaoManagerException e) {
 			String error="Query:'" + query+"'";
 			log.error(error, e);
@@ -341,8 +358,11 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		String query=COUNT_QUERY;
 		try{
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-			
-			return getLongFromQuery(pstm, query, 0);
+			try {
+                return getLongFromQuery(pstm, query, 0);
+            }finally{
+                close(pstm);
+            }
 		}catch (DaoManagerException e) {
 			String error="Query:'" + query+"'";
 			log.error(error, e);
@@ -357,12 +377,15 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		String query=DELETE_QUERY;
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,
-					query);
+                                                         query);
 
-			setString(pstm, 1, id, query);
-
-			executeUpdate(pstm, query);
-
+            try {
+                setString(pstm, 1, id, query);
+                
+                executeUpdate(pstm, query);
+            }finally{
+                close(pstm);
+            }
 		} catch (DaoManagerException e) {
 			String error = "id:'" + id + "' query:"+query;
 			throw new DaoManagerException(error, e);
@@ -400,11 +423,15 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		try {				
 			PreparedStatement pstmInsert = getPrepareStatement(connection,
 															   query);
-			setInsertStatement(pstmInsert,interf,query);
-			
-			executeUpdate(pstmInsert, query);
-
-			return interf.getId();
+            try {
+                setInsertStatement(pstmInsert,interf,query);
+                
+                executeUpdate(pstmInsert, query);
+                
+                return interf.getId();
+            }finally{
+                close(pstmInsert);
+            }
 		} catch (DaoManagerException e) {
 			String error = "Insert object:'" + interf + 
 				"' query:'" + query+
@@ -428,11 +455,15 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		try {				
 			PreparedStatement pstmInsert = getPrepareStatement(connection,
 															   query);
-			setInsertStatement(pstmInsert,id,interf,query);
-			
-			executeUpdate(pstmInsert, query);
-
-			return interf.getId();
+            try {
+                setInsertStatement(pstmInsert,id,interf,query);
+                
+                executeUpdate(pstmInsert, query);
+                
+                return interf.getId();
+            }finally{
+                close(pstmInsert);
+            }
 		} catch (DaoManagerException e) {
 			String error = "Insert object:'" + interf + 
 				"' query:'" + query+
@@ -475,11 +506,13 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		try {						
 			PreparedStatement pstmInsert = getPrepareStatement(connection,
 															   query);
-			
-			setUpdateStatement(pstmInsert,interf,query);
-			
-			executeUpdate(pstmInsert, query);
-			
+			try {
+                setUpdateStatement(pstmInsert,interf,query);
+                
+                executeUpdate(pstmInsert, query);
+            }finally{
+                close(pstmInsert);
+            }
 		} catch (DaoManagerException e) {
 			String error = "Update object:'" + interf + 
 				"' query:'" + query+
@@ -498,15 +531,22 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 
 		try{
 			PreparedStatement pstm = getPrepareStatement(connection,query);			
-			ResultSet rset = executeQuery(pstm,query);
-			
-			List<T> list= new ArrayList<T>(rset.getFetchSize());
-			
-			while (rset.next()){
-				T t=createFromResultSet(rset,query);
-				list.add(t);
-			}
-			return list;
+            try {
+                ResultSet rset = executeQuery(pstm,query);
+                try {
+                    List<T> list= new ArrayList<T>(rset.getFetchSize());
+                    
+                    while (rset.next()){
+                        T t=createFromResultSet(rset,query);
+                        list.add(t);
+                    }
+                    return list;
+                }finally{
+                    close(rset);
+                }                
+            }finally{
+                close(pstm);
+            }
 		}catch (SQLException e){
 			String error="Query:'" + query+"'";
 			throw new DaoManagerException(error,e);

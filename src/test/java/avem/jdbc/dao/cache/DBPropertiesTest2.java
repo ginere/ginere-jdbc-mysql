@@ -2,8 +2,8 @@ package avem.jdbc.dao.cache;
 
 import org.junit.Test;
 
-import avem.jdbc.properties.DBProperties;
-import avem.jdbc.test.AbstractSQLDAOTest;
+import eu.ginere.jdbc.mysql.dao.test.AbstractSQLDAOTest;
+import eu.ginere.jdbc.mysql.dao.util.DBProperties;
 
 
 public class DBPropertiesTest2 extends AbstractSQLDAOTest {

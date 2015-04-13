@@ -1,10 +1,10 @@
-package avem.jdbc.dao.cache;
+package eu.ginere.jdbc.mysql.dao.cache;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.cache.KeyCacheObject;
-import avem.common.util.dao.cache.impl.AbstractKeyCacheManager;
-import avem.common.util.dao.cache.impl.KeyCacheManagerWatcher;
-import avem.jdbc.dao.KeyDAOInterface;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.cache.KeyCacheObject;
+import eu.ginere.base.util.dao.cache.impl.AbstractKeyCacheManager;
+import eu.ginere.base.util.dao.cache.impl.KeyCacheManagerWatcher;
+import eu.ginere.jdbc.mysql.dao.KeyDAOInterface;
 
 /**
  * @author ventura

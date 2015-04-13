@@ -1,11 +1,11 @@
-package avem.jdbc.backend;
+package eu.ginere.jdbc.mysql.backend;
 
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.jdbc.dao.AbstractSQLDAO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
 
 public class BackendManager {
 	static final Logger log = Logger.getLogger(AbstractSQLDAO.class);

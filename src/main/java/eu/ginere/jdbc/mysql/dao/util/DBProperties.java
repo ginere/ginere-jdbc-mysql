@@ -1,4 +1,4 @@
-package avem.jdbc.properties;
+package eu.ginere.jdbc.mysql.dao.util;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,8 +8,8 @@ import java.sql.SQLException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.jdbc.dao.AbstractSQLDAO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
 
 
 public class DBProperties extends AbstractSQLDAO {
@@ -43,7 +43,7 @@ public class DBProperties extends AbstractSQLDAO {
 		super(TABLE_NAME,CREATE_QUERY_ARRAY);
 	}
 	
-	public static int getIntValue(Class c, String propertyName, int defaultValue) {
+	public int getIntValue(Class c, String propertyName, int defaultValue) {
 		try {
 			String ret = getStringValue(c, propertyName,null);
 
@@ -65,11 +65,11 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static void setIntValue(Class c, String propertyName, int value) throws DaoManagerException {
+	public void setIntValue(Class c, String propertyName, int value) throws DaoManagerException {
 		setStringValue(c,propertyName,Integer.toString(value));
 	}
 
-	public static boolean getBooleanValue(Class section, 
+	public boolean getBooleanValue(Class section, 
 										  String propertyName,
 										  boolean defaultValue) {
 		try {
@@ -84,7 +84,7 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static void setBooleanValue(Class c, String propertyName, boolean value) throws DaoManagerException {
+	public void setBooleanValue(Class c, String propertyName, boolean value) throws DaoManagerException {
 		setStringValue(c,propertyName,((value)?"true":"false"));
 	}
 
@@ -108,7 +108,7 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static String getStringValue(Class c, String propertyName,String defaultValue) {
+	public String getStringValue(Class c, String propertyName,String defaultValue) {
 		try {
 			return get(getPropertyName(c,propertyName), defaultValue);
 		} catch (DaoManagerException e) {
@@ -120,7 +120,7 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 		
-	public static void setStringValue(Class c, String propertyName,String value) throws DaoManagerException {
+	public void setStringValue(Class c, String propertyName,String value) throws DaoManagerException {
 		String name=getPropertyName(c,propertyName);
 
 		if (!exists(name)){
@@ -134,31 +134,39 @@ public class DBProperties extends AbstractSQLDAO {
 		return c.getName()+propertyName;
 	}
 
-	public static String get(Class c,String propertyName,String defaultvalue) throws DaoManagerException {		
+	public String get(Class c,String propertyName,String defaultvalue) throws DaoManagerException {		
 		return get(getPropertyName(c,propertyName),defaultvalue);
 	}
 
-	private static String get(String propertyName,String defaultvalue) throws DaoManagerException {		
+	private String get(String propertyName,String defaultvalue) throws DaoManagerException {		
 		Connection connection = getConnection();
 		String query=GET_PROPERTY;
 
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-
-			setString(pstm, 1, propertyName, query);
-
-			ResultSet rset = executeQuery(pstm, query);
-			
-			if (rset.next()){
-				return rset.getString(PROPERTY_VALUE);
-			} else {
-				return defaultvalue;
-			}
-		} catch (SQLException e) {
-			String error = "propertyName:'"+propertyName+"'.";
-			
-			log.error(error, e);
-			throw new DaoManagerException(error, e);
+            try {
+                setString(pstm, 1, propertyName, query);
+                
+                return getStringFromQuery(pstm, query, defaultvalue);
+                
+//                ResultSet rset = executeQuery(pstm, query);
+//                try {
+//                    if (rset.next()){
+//                        return rset.getString(PROPERTY_VALUE);
+//                    } else {
+//                        return defaultvalue;
+//                    }
+//                }finally{
+//                    close(rset);
+//                }
+            }finally{
+                close(pstm);
+            }
+//		} catch (SQLException e) {
+//			String error = "propertyName:'"+propertyName+"'.";
+//			
+//			log.error(error, e);
+//			throw new DaoManagerException(error, e);
 		} catch (DaoManagerException e) {
 			String error = "propertyName:'"+propertyName+"'.";
 			
@@ -169,33 +177,37 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static boolean exists(Class c,String propertyName) throws DaoManagerException {		
+	public boolean exists(Class c,String propertyName) throws DaoManagerException {		
 		String name=getPropertyName(c,propertyName);
 
 		return exists(name);
 	}
 
-	private static boolean exists(String propertyName) throws DaoManagerException {		
+	private boolean exists(String propertyName) throws DaoManagerException {		
 		Connection connection = getConnection();
 		String query=GET_PROPERTY;
 
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-
-			setString(pstm, 1, propertyName, query);
-
-			ResultSet rset = executeQuery(pstm, query);
-			
-			if (rset.next()){
-				return true;
-			} else {
-				return false;
+			try {
+				setString(pstm, 1, propertyName, query);
+	
+				return hasNext(pstm, query);
+			}finally{
+				close(pstm);
 			}
-		} catch (SQLException e) {
-			String error = "propertyName:'"+propertyName+"'.";
-			
-			log.error(error, e);
-			throw new DaoManagerException(error, e);
+//			ResultSet rset = executeQuery(pstm, query);
+//			
+//			if (rset.next()){
+//				return true;
+//			} else {
+//				return false;
+//			}
+//		} catch (SQLException e) {
+//			String error = "propertyName:'"+propertyName+"'.";
+//			
+//			log.error(error, e);
+//			throw new DaoManagerException(error, e);
 		} catch (DaoManagerException e) {
 			String error = "propertyName:'"+propertyName+"'.";
 			
@@ -206,7 +218,7 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static void insert(Class c,String propertyName,String value) throws DaoManagerException {		
+	public void insert(Class c,String propertyName,String value) throws DaoManagerException {		
 		insert(getPropertyName(c,propertyName),value);
 	}
 
@@ -215,22 +227,24 @@ public class DBProperties extends AbstractSQLDAO {
 	 "("+PROPERTY_NAME+","+PROPERTY_VALUE + 
 		") VALUES (?,? )";
 
-	private static void insert(String propertyName,String value) throws DaoManagerException {		
+	private void insert(String propertyName,String value) throws DaoManagerException {		
 		Connection connection = getConnection();
 		String query=INSERT_PROPERTY;
 
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-
-			setString(pstm, 1, propertyName, query);
-			setString(pstm, 2, value, query);
-
-			int number=executeUpdate(pstm, query);
-
-			if (log.isDebugEnabled()){
-				log.debug("Rows modified:"+number);
-			}
-
+            try {
+                setString(pstm, 1, propertyName, query);
+                setString(pstm, 2, value, query);
+                
+                long number=executeUpdate(pstm, query);
+                
+                if (log.isDebugEnabled()){
+                    log.debug("Rows modified:"+number);
+                }
+            }finally{
+                close(pstm);
+            }			
 		} catch (DaoManagerException e) {
 			String error = "propertyName:'"+propertyName+"' value:'"+value+"'.";
 			
@@ -241,7 +255,7 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static void update(Class c,String propertyName,String value) throws DaoManagerException {		
+	public void update(Class c,String propertyName,String value) throws DaoManagerException {		
 		update(getPropertyName(c,propertyName),value);
 	}
 
@@ -249,21 +263,24 @@ public class DBProperties extends AbstractSQLDAO {
 		" set "+PROPERTY_VALUE+"=?,"+FECHA_INSERCION + "=SYSDATE() where "+PROPERTY_NAME+
 		"=?";
 
-	private static void update(String propertyName,String value) throws DaoManagerException {		
+	private void update(String propertyName,String value) throws DaoManagerException {		
 		Connection connection = getConnection();
 		String query=UPDATE_PROPERTY;
 
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-
-			setString(pstm, 1, value, query);
-			setString(pstm, 2, propertyName, query);
-
-			int number=executeUpdate(pstm, query);
-
-			if (log.isDebugEnabled()){
-				log.debug("Rows modified:"+number);
-			}
+            try {
+                setString(pstm, 1, value, query);
+                setString(pstm, 2, propertyName, query);
+                
+                long number=executeUpdate(pstm, query);
+                
+                if (log.isDebugEnabled()){
+                    log.debug("Rows modified:"+number);
+                }
+            }finally{
+                close(pstm);
+            }			
 		} catch (DaoManagerException e) {
 			String error = "propertyName:'"+propertyName+"' value:'"+value+"'.";
 			
@@ -274,7 +291,7 @@ public class DBProperties extends AbstractSQLDAO {
 		}
 	}
 
-	public static void delete(Class c,String propertyName) throws DaoManagerException {		
+	public void delete(Class c,String propertyName) throws DaoManagerException {		
 		delete(getPropertyName(c,propertyName));
 	}
 
@@ -282,20 +299,23 @@ public class DBProperties extends AbstractSQLDAO {
 	private static final String DELETE_PROPERTY = "delete from "+TABLE_NAME+
 		" where "+PROPERTY_NAME+"=?";
 
-	private static void delete(String propertyName) throws DaoManagerException {		
+	private void delete(String propertyName) throws DaoManagerException {		
 		Connection connection = getConnection();
 		String query=DELETE_PROPERTY;
 
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,query);
-			
-			setString(pstm, 1, propertyName, query);
-
-			int number=executeUpdate(pstm, query);
-
-			if (log.isDebugEnabled()){
-				log.debug("Rows modified:"+number);
-			}
+            try {
+                setString(pstm, 1, propertyName, query);
+                
+                long number=executeUpdate(pstm, query);
+                
+                if (log.isDebugEnabled()){
+                    log.debug("Rows modified:"+number);
+                }
+            }finally{
+                close(pstm);
+            }
 		} catch (DaoManagerException e) {
 			String error = "propertyName:'"+propertyName+"' .";
 			

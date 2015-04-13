@@ -1,4 +1,4 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.PreparedStatement;
 

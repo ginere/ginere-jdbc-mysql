@@ -1,6 +1,6 @@
-package avem.jdbc.backend;
+package eu.ginere.jdbc.mysql.backend;
 
-import avem.common.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.DaoManagerException;
 
 public interface BackEndInterface {
 

@@ -1,12 +1,12 @@
-package avem.jdbc.backend;
+package eu.ginere.jdbc.mysql.backend;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.jdbc.dao.AbstractKeyObjectSQLDAO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
 
 public class BackendDAO extends AbstractKeyObjectSQLDAO<BackendInfo>{
 	

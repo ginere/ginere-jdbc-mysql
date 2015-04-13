@@ -1,12 +1,12 @@
-package avem.jdbc.dao;
+package eu.ginere.jdbc.mysql.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.KeyAutoincrementDTO;
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.KeyAutoincrementDTO;
 
 /**
  * @author ventura
@@ -61,26 +61,38 @@ public abstract class AbstractAutoIncrementKeyObjectSQLDAO<T extends KeyAutoincr
 		try {				
 			PreparedStatement pstmInsert = getPrepareStatement(connection,
 															   query);
-			setInsertFromAutoIncrementKeyColumnStatement(pstmInsert,interf,query);
+            try {
+                setInsertFromAutoIncrementKeyColumnStatement(pstmInsert,interf,query);
 			
-			executeUpdate(pstmInsert, query);
-
-			try {
-				String queryLast="SELECT LAST_INSERT_ID()";
-				PreparedStatement pstmLast = getPrepareStatement(connection,
-						queryLast);
-				ResultSet rset=executeQuery(pstmLast,queryLast);
-				if(rset.next()){
-					String id=rset.getString(1);
-					interf.setId(id);
-					
-					return id;
-				}else{
-					throw new DaoManagerException("While insert object:"+interf+" LAST_INSERT_ID return no value!!!");
-				}
-			}catch (SQLException e) {
-				throw new DaoManagerException("While getting LAST_INSERT_ID from insert object:"+interf);
-			}
+                executeUpdate(pstmInsert, query);
+                
+                try {
+                    String queryLast="SELECT LAST_INSERT_ID()";
+                    PreparedStatement pstmLast = getPrepareStatement(connection,
+                                                                     queryLast);
+                    try {
+                        ResultSet rset=executeQuery(pstmLast,queryLast);
+                        try {
+                            if(rset.next()){
+                                String id=rset.getString(1);
+                                interf.setId(id);
+                                
+                                return id;
+                            }else{
+                                throw new DaoManagerException("While insert object:"+interf+" LAST_INSERT_ID return no value!!!");
+                            }
+                        }finally{
+                            close(rset);
+                        }                        
+                    }finally{
+                        close(pstmLast);
+                    }
+                }catch (SQLException e) {
+                    throw new DaoManagerException("While getting LAST_INSERT_ID from insert object:"+interf);
+                }
+            }finally{
+                close(pstmInsert);
+            }
 
 		} catch (DaoManagerException e) {
 			String error = "Insert object:'" + interf + 

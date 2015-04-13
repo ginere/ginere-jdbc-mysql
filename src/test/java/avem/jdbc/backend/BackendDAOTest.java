@@ -9,18 +9,19 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
-import avem.jdbc.JdbcManager;
-import avem.jdbc.dao.AbstractKeyObjectSQLDAO;
-import avem.jdbc.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.backend.BackendDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import avem.jdbc.MySQLDatabaseUtils;
 
 public class BackendDAOTest extends TestCase{
 	static final Logger log = Logger.getLogger(BackendDAOTest.class);
 
 
 	private static void setDataSource() throws Exception {
-		DataSource dataSource = JdbcManager.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
+		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
 		
-		JdbcManager.setDataSource(dataSource);
+		MySQLDatabaseUtils.setDataSource(dataSource);
 	}
 
 	@Test

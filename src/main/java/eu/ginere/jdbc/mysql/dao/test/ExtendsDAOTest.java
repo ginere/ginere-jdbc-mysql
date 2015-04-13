@@ -1,29 +1,32 @@
-package avem.jdbc.test;
+package eu.ginere.jdbc.mysql.dao.test;
 
 import java.util.List;
 
-import avem.common.util.dao.DaoManagerException;
-import avem.common.util.dao.KeyDTO;
-import avem.jdbc.dao.AbstractKeyObjectSQLDAO;
+import org.junit.Test;
 
-public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends AbstractSQLDAOTest {
+import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.jdbc.mysql.dao.ExtendsDAO;
 
-	protected AbstractKeyObjectSQLDAOTest(AbstractKeyObjectSQLDAO<T> DAO){
+public abstract class ExtendsDAOTest<I extends KeyDTO,T extends I> extends AbstractSQLDAOTest {
+
+	protected ExtendsDAOTest(ExtendsDAO<I ,T> DAO){
 		super(DAO,false);
 		
 	}
 
-	protected AbstractKeyObjectSQLDAOTest(AbstractKeyObjectSQLDAO<T> DAO,boolean removeBackEnd){
+	protected ExtendsDAOTest(ExtendsDAO<I ,T> DAO,boolean removeBackEnd){
 		super(DAO,removeBackEnd);
+		
 	}
-
 	
-	public void innerTestKeyBackEnd() throws Exception {		
+	@Test
+	public void testKeyBackEnd() throws Exception {		
 		try {
 			setDataSource();
-			AbstractKeyObjectSQLDAO<T> keyDAO=(AbstractKeyObjectSQLDAO<T>)DAO;
+			ExtendsDAO<I ,T> keyDAO=(ExtendsDAO<I ,T>)DAO;
 				
-			List<T> listAll=keyDAO.getAll();
+			List<I> listAll=keyDAO.getAll();
 			List<String> listAllIds=keyDAO.getAllIds();
 			long elementNumber=keyDAO.getBackendElementNumber();
 			
@@ -46,12 +49,12 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 		}
 	}
 
-	public void innerTestInsert() throws Exception {		
+	@Test
+	public void testInsert() throws Exception {		
 		try {
 			setDataSource();
-			AbstractKeyObjectSQLDAO<T> keyDAO=(AbstractKeyObjectSQLDAO<T>)DAO;
+			ExtendsDAO<I ,T> keyDAO=(ExtendsDAO<I ,T>)DAO;
 			
-			cleanTestBeforeStart();
 			T obj=getTestObj();
 			String id=obj.getId();
 			
@@ -77,7 +80,7 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 			keyDAO.update(readed);
 
 			// Get All
-			List <T>list=keyDAO.getAll();
+			List <I>list=keyDAO.getAll();
 			assertTrue(list.size()>0);
 
 			List <String>listIds=keyDAO.getAllIds();
@@ -90,7 +93,7 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 
 
 			// conditions
-			List <T>listConditions=keyDAO.getByConditions(" where "+keyDAO.getKeyColumnName()+"='"+id+"' ");
+			List <I>listConditions=keyDAO.getByConditions(" AND "+keyDAO.getTableName()+'.'+keyDAO.getKeyColumnName()+"='"+id+"' ");
 			assertTrue(listConditions.size()==1);
 
 
@@ -104,11 +107,4 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 	}
 
 	protected abstract T getTestObj() throws DaoManagerException;
-	protected abstract void cleanTestBeforeStart() throws DaoManagerException;
-	
-	protected void executeText() throws Exception {
-		innerTestBackEnd();		
-		innerTestKeyBackEnd();
-		innerTestInsert();
-	}
 }

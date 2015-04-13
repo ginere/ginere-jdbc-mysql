@@ -1,4 +1,4 @@
-package avem.jdbc.test;
+package eu.ginere.jdbc.mysql.dao.test;
 
 import javax.sql.DataSource;
 
@@ -6,9 +6,10 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 
-import avem.jdbc.JdbcManager;
-import avem.jdbc.backend.BackendManager;
-import avem.jdbc.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.MySQLDataBase;
+import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
+import eu.ginere.jdbc.mysql.backend.BackendManager;
+import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
 
 public abstract class AbstractSQLDAOTest extends TestCase {
 	public static final Logger log = Logger.getLogger(AbstractSQLDAOTest.class);
@@ -74,15 +75,16 @@ public abstract class AbstractSQLDAOTest extends TestCase {
 	}
 
 	protected String getFilePropertiesName() throws Exception {
-		return "/etc/cgps/jdbc.properties";
+		return "conf/jdbc.properties";
 	}
 	
 	protected void setDataSource() throws Exception {
 		String filePropertiesName=getFilePropertiesName();
-		DataSource dataSource = JdbcManager.createMySQLDataSourceFromPropertiesFile(filePropertiesName);
+		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile(filePropertiesName);
 		
-		JdbcManager.setDataSource(dataSource);
+//		MySQLDatabaseUtils.setDataSource(dataSource);
 		
+		MySQLDataBase.initDatasource(filePropertiesName,dataSource);
 		BackendManager.init();
 	}
 

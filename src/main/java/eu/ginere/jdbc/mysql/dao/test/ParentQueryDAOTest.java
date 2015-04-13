@@ -1,11 +1,11 @@
-package avem.jdbc.test;
+package eu.ginere.jdbc.mysql.dao.test;
 
 import java.util.List;
 
 import org.junit.Test;
 
-import avem.common.util.dao.KeyDTO;
-import avem.jdbc.dao.ParentQueryDAO;
+import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.jdbc.mysql.dao.ParentQueryDAO;
 
 public abstract class ParentQueryDAOTest<T extends KeyDTO> extends AbstractSQLDAOTest {
 
