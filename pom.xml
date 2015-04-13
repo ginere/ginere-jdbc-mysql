@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>avem.common</groupId>
+	<artifactId>jdbc-mysql</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0.1-SNAPSHOT</version>
+	<name>jdbc-mysql modulo base jdbc para MySql</name>
+	<url>http://www.caminogps.com</url>
+
+	<scm>
+		<connection>scm:svn:http://localhost-svn/svn/cgps-src/avem/common/jdbc-mysql/trunk</connection>
+		<developerConnection>scm:svn:http://localhost-svn/svn/cgps-src/avem/common/jdbc-mysql/trunk</developerConnection>
+	</scm>
+
+	<ciManagement>
+		<system>Continnuum</system>
+		<url>http://localhost:8082/continuum/</url>
+	</ciManagement>
+
+	<organization>
+		<name>CGPS</name>
+		<url>http://www.caminogps.com</url>
+	</organization>
+
+	<build>
+		<defaultGoal>install</defaultGoal>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4.3</version>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>cgps-libs-releases</id>
+			<url>http://localhost:8081/artifactory/repo-cgps</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>cgps-libs-snapshots</id>
+			<url>http://localhost:8081/artifactory/repo-cgps</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>artifactory</id>
+			<name>artifactory-releases</name>
+			<url>http://localhost:8081/artifactory/cgps-libs-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>artifactory</id>
+			<name>artifactory-snapshots</name>
+			<url>http://localhost:8081/artifactory/cgps-libs-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<!--scope>test</scope -->
+		</dependency>
+		<dependency>
+			<groupId>avem.common</groupId>
+			<artifactId>util</artifactId>
+			<version>${util.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<properties>
+		<maven.test.skip>true</maven.test.skip>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<junit.version>4.5</junit.version>
+		<mysql.version>5.1.17</mysql.version>
+		<!-- AVEM -->
+		<util.version>1.0.1-SNAPSHOT</util.version>
+
+	</properties>
+</project>
