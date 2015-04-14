@@ -141,26 +141,13 @@ public abstract class MySQLDatabaseUtils {
 		return ret;
 	}
 
-//	public static boolean testConnection() throws Exception{
-//		if (dataSource==null){
-//			throw new DaoManagerException("datasource is null");
-//		} else {
-//			try {
-//				Connection connection = dataSource.getConnection();
-//				String testQuery="SELECT 1 from DUAL";
-//				try {
-//					PreparedStatement pstm = connection.prepareStatement(testQuery);
-//					
-//					pstm.executeQuery(testQuery);
-//					return true;
-//					
-//				} finally {
-//					connection.close();
-//				}	
-//			} catch (Exception e) {
-//				throw new DaoManagerException("Connection test error", e);
-//			}
-//		}
-//	}
+	public static void initDatasource(String filePropertiesName) throws DaoManagerException {
+		try {
+			DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile(filePropertiesName);
+			MySQLDataBase.initDatasource(filePropertiesName,dataSource);
+		}catch(Exception e){
+			throw new DaoManagerException("While init datasource from file:"+filePropertiesName, e);
+		}
+	}
 
 }

@@ -1,30 +1,34 @@
-package avem.jdbc.dao.cache;
-
-import javax.sql.DataSource;
+package eu.ginere.jdbc.mysql.dao.util;
 
 import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import eu.ginere.jdbc.mysql.MySQLDataBase;
+import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
 import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
 import eu.ginere.jdbc.mysql.dao.util.DBProperties;
-import avem.jdbc.MySQLDatabaseUtils;
+import eu.ginere.jdbc.mysql.dao.util.DBPropertiesDAO;
 
 public class DBPropertiesTest extends TestCase {
 	static final Logger log = Logger.getLogger(DBPropertiesTest.class);
 	
 	private static void setDataSource() throws Exception {
-		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
+//		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
+//		
+//		MySQLDatabaseUtils.setDataSource(dataSource);
 		
-		MySQLDatabaseUtils.setDataSource(dataSource);
+		String filePropertiesName="conf/jdbc.properties";
+		MySQLDatabaseUtils.initDatasource(filePropertiesName);
+		MySQLDataBase.DEFAULT_DATABASE.createAndUseDatabase("junit_test");
 	}
 
 	@Test
 	static public void testBackEnd() throws Exception {	
 		try {
 			setDataSource();
-			AbstractSQLDAO DAO=DBProperties.DAO;
+			AbstractSQLDAO DAO=DBPropertiesDAO.DAO;
 				
 			int codeVersion=DAO.getCodeVersion();
 			log.info("codeVersion:"+codeVersion);
@@ -58,7 +62,7 @@ public class DBPropertiesTest extends TestCase {
 		try {
 			setDataSource();
 
-			long elementNumber=DBProperties.DAO.getBackendElementNumber();
+			long elementNumber=DBPropertiesDAO.DAO.getBackendElementNumber();
 			log.info("elementNumber:"+elementNumber);
 			
 			String value="test";

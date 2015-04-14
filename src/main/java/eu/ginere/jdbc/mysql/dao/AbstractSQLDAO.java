@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -427,6 +426,26 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 			closeConnection(connection);
 		}
 	}
+	
+	public boolean hasNext(String query) throws DaoManagerException {		
+//		Connection connection = getConnection();
+//		try {
+//			PreparedStatement pstm = getPrepareStatement(connection, query);
+//
+//            try {
+//                return hasNext(pstm, query);
+//            }finally{
+//                close(pstm);
+//            }
+//		} catch (DaoManagerException e) {
+//			String error = "query:'"+query+"'";
+//
+//			throw new DaoManagerException(error, e);
+//		} finally {
+//			closeConnection(connection);
+//		}
+		return dataBase.hasNext(query);
+	}
 
 	/**
 	 * Pruebas si la query produce algun resultado, por ejemplo util para saber
@@ -437,27 +456,28 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 	 * @return true si la query produce algun resultado, false si no.
 	 * @throws DaoManagerException
 	 */
-	protected static boolean hasNext(PreparedStatement pstm, String query) throws DaoManagerException {
-		long time = 0;
-		if (log.isInfoEnabled()) {
-			time = System.currentTimeMillis();
-		}
-		try {
-			ResultSet rset = pstm.executeQuery();
-            try {
-                return rset.next();
-            }finally{
-                close(rset);
-            }
-		} catch (SQLException e) {
-			throw new DaoManagerException("While executing query:'" + query
-					+ "'", e);
-		} finally {
-			if (log.isInfoEnabled()) {
-				log.info("query:'" + query + "' executed in:"
-						+ (System.currentTimeMillis() - time) + " mill");
-			}
-		}
+	protected boolean hasNext(PreparedStatement pstm, String query) throws DaoManagerException {
+//		long time = 0;
+//		if (log.isInfoEnabled()) {
+//			time = System.currentTimeMillis();
+//		}
+//		try {
+//			ResultSet rset = pstm.executeQuery();
+//            try {
+//                return rset.next();
+//            }finally{
+//                close(rset);
+//            }
+//		} catch (SQLException e) {
+//			throw new DaoManagerException("While executing query:'" + query
+//					+ "'", e);
+//		} finally {
+//			if (log.isInfoEnabled()) {
+//				log.info("query:'" + query + "' executed in:"
+//						+ (System.currentTimeMillis() - time) + " mill");
+//			}
+//		}
+		return dataBase.hasResult(pstm, query);
 	}
 
 	public List<String> getStringList(PreparedStatement pstm,
@@ -546,10 +566,15 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 	protected Connection getConnection() throws DaoManagerException {
         //		return ThreadLocalConection.getConnection(dataSource);
 		if (dataBase==null){
-			throw new DaoManagerException("Data besae connection not initialized");
-		} else  {
-			return dataBase.getConnection();
+			if (MySQLDataBase.DEFAULT_DATABASE!=null){
+				log.info("Database not defined for DAO:"+getClass().getName()+" ussing the default one.");
+				dataBase=MySQLDataBase.DEFAULT_DATABASE;	
+			} else {
+				throw new DaoManagerException("Data base connection not initialized");
+			}
 		}
+		
+		return dataBase.getConnection();		
 	}
 
 	static protected void closeConnection(Connection connection) {

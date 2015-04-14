@@ -815,6 +815,57 @@ public class MySQLDataBase implements TestInterface{
 		}
 	}
 
+	public boolean hasNext(String query) throws DaoManagerException {		
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+
+            try {
+                return hasNext(pstm, query);
+            }finally{
+                close(pstm);
+            }
+		} catch (DaoManagerException e) {
+			String error = "query:'"+query+"'";
+
+			throw new DaoManagerException(error, e);
+		} finally {
+			closeConnection(connection);
+		}
+	}
+	
+	/**
+	 * Pruebas si la query produce algun resultado, por ejemplo util para saber
+	 * si un elemento existe en la tabla
+	 * 
+	 * @param pstm
+	 * @param query
+	 * @return true si la query produce algun resultado, false si no.
+	 * @throws DaoManagerException
+	 */
+	protected static boolean hasNext(PreparedStatement pstm, String query) throws DaoManagerException {
+		long time = 0;
+		if (log.isInfoEnabled()) {
+			time = System.currentTimeMillis();
+		}
+		try {
+			ResultSet rset = pstm.executeQuery();
+            try {
+                return rset.next();
+            }finally{
+                close(rset);
+            }
+		} catch (SQLException e) {
+			throw new DaoManagerException("While executing query:'" + query
+					+ "'", e);
+		} finally {
+			if (log.isInfoEnabled()) {
+				log.info("query:'" + query + "' executed in:"
+						+ (System.currentTimeMillis() - time) + " mill");
+			}
+		}
+	}
+
 	protected static void set(PreparedStatement pstm,int poss,Object value,String query) throws DaoManagerException {
 
 		if (value instanceof String || value == null){
@@ -844,5 +895,62 @@ public class MySQLDataBase implements TestInterface{
 
 	static public void endThreadLocal(boolean forzeClean) {
 		ThreadLocalConection.endThreadLocal(forzeClean);
-	}	
+	}
+	
+
+	private static final String GET_DATA_BASES_QUERY = "show databases";
+	
+	public List<String> getDatabases() throws DaoManagerException {
+		return getStringList(GET_DATA_BASES_QUERY);        
+	}
+
+	public boolean exitsDatabase(String databaseName) throws DaoManagerException {
+		return hasNext("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '"+databaseName+"'");
+    }
+
+	public void createDatabase(String databaseName) throws DaoManagerException {
+		createDatabase(databaseName, null, null);
+	}
+	public void createDatabase(String databaseName,String charset,String collationName) throws DaoManagerException {
+        if (databaseName == null){
+            throw new DaoManagerException("The database name can not be null");
+        } else {
+            if (charset == null){
+                charset="utf8";
+            }
+            if (collationName == null){
+                collationName="utf8_general_ci";
+            }
+            try {
+            	executeUpdate("create database "+databaseName+" CHAR SET = "+charset+" COLLATE = "+collationName);        
+            }catch(DaoManagerException e){
+                throw new DaoManagerException("Database:"+databaseName+" charset:"+charset+" collation:"+collationName,e);
+            }
+        }
+	}
+
+	public void dropDatabase(String databaseName) throws DaoManagerException {
+        if (databaseName == null){
+            throw new DaoManagerException("The database name can not be null");
+        } else {
+            try {
+                executeUpdate("drop database "+databaseName);        
+            }catch(DaoManagerException e){
+                throw new DaoManagerException("Database:"+databaseName,e);
+            }
+        }
+	}
+
+	public void useDatabase(String databaseName) throws DaoManagerException {
+		executeUpdate("USE  "+databaseName+"");
+	}
+
+	public void createAndUseDatabase(String databaseName) throws DaoManagerException {
+		if (!exitsDatabase(databaseName)){
+			createDatabase(databaseName);
+		}
+		useDatabase(databaseName);		
+	}
+
+
 }

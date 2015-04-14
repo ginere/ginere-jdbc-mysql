@@ -1,4 +1,4 @@
-package avem.jdbc.backend;
+package eu.ginere.jdbc.mysql.backend;
 
 import java.util.List;
 
@@ -9,19 +9,25 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import eu.ginere.jdbc.mysql.MySQLDataBase;
+import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
 import eu.ginere.jdbc.mysql.backend.BackendDAO;
 import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
 import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
-import avem.jdbc.MySQLDatabaseUtils;
 
 public class BackendDAOTest extends TestCase{
 	static final Logger log = Logger.getLogger(BackendDAOTest.class);
 
 
 	private static void setDataSource() throws Exception {
-		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
+//		DataSource dataSource = MySQLDatabaseUtils.createMySQLDataSourceFromPropertiesFile("/etc/cgps/jdbc.properties");
+//		
+//		MySQLDatabaseUtils.setDataSource(dataSource);
 		
-		MySQLDatabaseUtils.setDataSource(dataSource);
+		String filePropertiesName="conf/jdbc.properties";
+		MySQLDatabaseUtils.initDatasource(filePropertiesName);
+		MySQLDataBase.DEFAULT_DATABASE.createAndUseDatabase("junit_test");
+		
 	}
 
 	@Test
@@ -44,7 +50,6 @@ public class BackendDAOTest extends TestCase{
 				log.info("updates: OK");
 			} else {
 				log.info("is updated.");
-
 			}
 
 			long elementNumber=DAO.getBackendElementNumber();
@@ -60,7 +65,9 @@ public class BackendDAOTest extends TestCase{
 	@Test
 	static public void testKeyBackEnd() throws Exception {		
 		try {
-			setDataSource();
+			testBackEnd();
+//			setDataSource();
+			
 			AbstractKeyObjectSQLDAO DAO=BackendDAO.DAO;
 				
 			List listAll=DAO.getAll();
