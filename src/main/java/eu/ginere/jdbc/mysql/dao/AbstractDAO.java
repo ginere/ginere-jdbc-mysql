@@ -78,10 +78,25 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		this.dataBase=dataBase;		
 	}
 	
-	protected void createIndexes(String indexes[][]){
-		if (indexes == null){
+	public void createTable() throws DaoManagerException{
+        for (int i=0;i<createQueryArray.length;i++){
+            for (String query:createQueryArray[i]){
+            	this.dataBase.executeUpdate(query);
+            }
+        }
+	}
+
+	protected void createIndexes(String createQuery[][]) throws DaoManagerException {
+		if (createQuery == null){
 			log.error("No indexes");
 		} else {
+            for (int i = 0; i < createQuery.length; i++) {
+                String name = createQuery[i][0];
+                String query = createQuery[i][1];
+                this.dataBase.executeUpdate(query);
+            }
+
+            /*
 			try {
 				Connection connection = getConnection();
 				try {
@@ -112,13 +127,20 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			}catch (DaoManagerException e) {
 				log.error("While geting connection to create indexes",e);
 			}
+            */
 		}
 	}
 	
-	protected void dropIndexes(String indexes[][]){
-		if (indexes == null){
+	protected void dropIndexes(String createQuery[][])throws DaoManagerException{
+		if (createQuery == null){
 			log.error("No indexes");
 		} else {
+            for (int i = 0; i < createQuery.length; i++) {
+                String name = createQuery[i][0];
+                String query = createQuery[i][1];
+                this.dataBase.executeUpdate(query);
+            }
+            /*
 			try {
 				Connection connection = getConnection();
 				try {
@@ -148,7 +170,8 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 				}
 			}catch (DaoManagerException e) {
 				log.error("While geting connection to drop indexes",e);
-			}
+                }
+            */
 		}
 	}
 	
@@ -884,6 +907,14 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		} catch (SQLException e) {
 			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
 		}
+	}
+
+	protected Date getDate(PreparedStatement pstm, String query) throws DaoManagerException{
+		return MySQLDataBase.getDate(pstm,query);
+	}
+
+	protected Date getDate(PreparedStatement pstm, String query,Date defaultValue) throws DaoManagerException{
+		return MySQLDataBase.getDate(pstm,query,defaultValue);
 	}
 
 	public static Date getDate(ResultSet rset, String columnName,String query) throws DaoManagerException {
