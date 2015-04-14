@@ -6,25 +6,26 @@ import junit.framework.TestCase;
 
 import org.apache.log4j.Logger;
 
+import eu.ginere.base.util.test.TestResult;
 import eu.ginere.jdbc.mysql.MySQLDataBase;
 import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
 import eu.ginere.jdbc.mysql.backend.BackendManager;
-import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractDAO;
 
 public abstract class AbstractSQLDAOTest extends TestCase {
 	public static final Logger log = Logger.getLogger(AbstractSQLDAOTest.class);
 
-	protected final AbstractSQLDAO DAO;
+	protected final AbstractDAO DAO;
 	protected final boolean removeBackEnd;
 
 
-	protected AbstractSQLDAOTest(AbstractSQLDAO DAO){
+	protected AbstractSQLDAOTest(AbstractDAO DAO){
 		this.DAO=DAO;
 		this.removeBackEnd=false;
 	}
 
 
-	protected AbstractSQLDAOTest(AbstractSQLDAO DAO,boolean removeBackEnd){
+	protected AbstractSQLDAOTest(AbstractDAO DAO,boolean removeBackEnd){
 		this.DAO=DAO;
 		this.removeBackEnd=removeBackEnd;
 	}
@@ -67,6 +68,12 @@ public abstract class AbstractSQLDAOTest extends TestCase {
 
 			long elementNumber=DAO.getBackendElementNumber();
 			log.info("elementNumber:"+elementNumber);
+			
+			TestResult test=DAO.test();
+			
+			if (!test.isOK()){
+				log.error("Test not OK:"+test);	
+			}
 			
 		} catch (Exception e) {
 			log.error("", e);

@@ -13,7 +13,7 @@ import eu.ginere.jdbc.mysql.MySQLDataBase;
 import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
 import eu.ginere.jdbc.mysql.backend.BackendDAO;
 import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
-import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractDAO;
 
 public class BackendDAOTest extends TestCase{
 	static final Logger log = Logger.getLogger(BackendDAOTest.class);
@@ -34,7 +34,7 @@ public class BackendDAOTest extends TestCase{
 	static public void testBackEnd() throws Exception {
 		try {
 			setDataSource();
-			AbstractSQLDAO DAO=BackendDAO.DAO;
+			AbstractDAO DAO=BackendDAO.DAO;
 				
 			int codeVersion=DAO.getCodeVersion();
 			log.info("codeVersion:"+codeVersion);

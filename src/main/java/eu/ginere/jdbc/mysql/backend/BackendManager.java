@@ -5,10 +5,10 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractDAO;
 
 public class BackendManager {
-	static final Logger log = Logger.getLogger(AbstractSQLDAO.class);
+	static final Logger log = Logger.getLogger(AbstractDAO.class);
 	private static final int NO_EXISTS_BACKEND_VERSION = 0;
 
 	public final static Vector <BackEndInterface>list=new Vector<BackEndInterface>();

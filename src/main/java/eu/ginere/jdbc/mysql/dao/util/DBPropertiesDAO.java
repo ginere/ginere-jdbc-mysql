@@ -7,10 +7,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractDAO;
 
 
-public class DBPropertiesDAO extends AbstractSQLDAO {
+public class DBPropertiesDAO extends AbstractDAO {
 	static final Logger log = Logger.getLogger(DBPropertiesDAO.class);
 
 	private static final String TABLE_NAME = "COMMON_PROPERTIES";

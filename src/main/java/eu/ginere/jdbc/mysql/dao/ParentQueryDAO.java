@@ -31,7 +31,7 @@ import eu.ginere.base.util.dao.KeyDTO;
  * @param <I>
  * @param <T>
  */
-public abstract class ParentQueryDAO<P extends KeyDTO> extends AbstractSQLDAO {
+public abstract class ParentQueryDAO<P extends KeyDTO> extends AbstractDAO {
 	static final Logger log = Logger.getLogger(ParentQueryDAO.class);
 
 	protected final String typeColumnName;

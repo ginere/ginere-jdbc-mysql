@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import eu.ginere.jdbc.mysql.MySQLDataBase;
 import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
-import eu.ginere.jdbc.mysql.dao.AbstractSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractDAO;
 import eu.ginere.jdbc.mysql.dao.util.DBProperties;
 import eu.ginere.jdbc.mysql.dao.util.DBPropertiesDAO;
 
@@ -28,7 +28,7 @@ public class DBPropertiesTest extends TestCase {
 	static public void testBackEnd() throws Exception {	
 		try {
 			setDataSource();
-			AbstractSQLDAO DAO=DBPropertiesDAO.DAO;
+			AbstractDAO DAO=DBPropertiesDAO.DAO;
 				
 			int codeVersion=DAO.getCodeVersion();
 			log.info("codeVersion:"+codeVersion);

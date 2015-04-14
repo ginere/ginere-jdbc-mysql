@@ -29,7 +29,7 @@ import eu.ginere.jdbc.mysql.dao.ParentQueryDAO.ChildDAOInterface;
  * @param <I>
  * @param <T>
  */
-public abstract class ExtendsDAO<I extends KeyDTO,T extends I> extends AbstractSQLDAO implements ChildDAOInterface<I>{
+public abstract class ExtendsDAO<I extends KeyDTO,T extends I> extends AbstractDAO implements ChildDAOInterface<I>{
 	static final Logger log = Logger.getLogger(ExtendsDAO.class);
 
 

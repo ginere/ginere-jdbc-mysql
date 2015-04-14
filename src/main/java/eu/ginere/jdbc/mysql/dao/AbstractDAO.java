@@ -16,6 +16,8 @@ import eu.ginere.base.util.dao.KeyDTO;
 import eu.ginere.base.util.enumeration.SQLEnum;
 import eu.ginere.base.util.file.FileId;
 import eu.ginere.base.util.i18n.I18NLabel;
+import eu.ginere.base.util.test.TestInterface;
+import eu.ginere.base.util.test.TestResult;
 import eu.ginere.jdbc.mysql.MySQLDataBase;
 //import eu.ginere.jdbc.mysql.ThreadLocalConection;
 import eu.ginere.jdbc.mysql.backend.BackEndInterface;
@@ -27,8 +29,8 @@ import eu.ginere.jdbc.mysql.backend.BackendManager;
  * Clase Madre para todos los datos de insercion en base de datos
  *
  */
-public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndInterface {
-	static final Logger log = Logger.getLogger(AbstractSQLDAO.class);
+public abstract class AbstractDAO implements BackEndInterface,TestInterface {
+	static final Logger log = Logger.getLogger(AbstractDAO.class);
 
 	private MySQLDataBase dataBase=null;
 
@@ -41,8 +43,9 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 	private final String COUNT ;
 
 	protected final String DELETE_ALL_QUERY;
-
-	protected AbstractSQLDAO(String tableName,String createQueryArray[][],String deleteQueryArray[]) {
+	protected final String TEST_QUERY;
+	
+	protected AbstractDAO(String tableName,String createQueryArray[][],String deleteQueryArray[]) {
 		this.dataBase=MySQLDataBase.DEFAULT_DATABASE;		
 
 		this.createQueryArray=createQueryArray;
@@ -53,10 +56,11 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 		
 		this.DELETE_ALL_QUERY="DELETE from " + tableName ;
 		
+		this.TEST_QUERY = "select * from " + tableName+ " limit 1";
 		BackendManager.subscrive(this);
 	}
 	
-	protected AbstractSQLDAO(String tableName,String createQueryArray[][]) {
+	protected AbstractDAO(String tableName,String createQueryArray[][]) {
 		this.dataBase=MySQLDataBase.DEFAULT_DATABASE;		
 
 		this.createQueryArray=createQueryArray;
@@ -65,6 +69,7 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 		this.COUNT = "select COUNT(*) from " + tableName + " limit 1";
 		this.DELETE_ALL_QUERY="DELETE from " + tableName ;
 		this.deleteQueryArray=null;
+		this.TEST_QUERY = "select * from " + tableName+ " limit 1";
 		
 		BackendManager.subscrive(this);
 	}
@@ -816,29 +821,6 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 		}
 	}
 	
-	public boolean testConnection() {
-		try {
-			Connection connection = getConnection();
-			String testQuery="SELECT 1 from DUAL";
-			try {
-				PreparedStatement pstm = getPrepareStatement(connection,
-                                                             testQuery);
-	
-                try {
-                    executeQuery(pstm, testQuery);
-                    return true;
-                }finally{
-                    close(pstm);
-                }
-			} finally {
-				closeConnection(connection);
-			}	
-		} catch (Exception e) {
-			log.error("Connection test error", e);
-			return false;
-		}
-	}
-	
 	protected static String appendTablenameToColumnName(String tableName,String columnsArray[]){
 		StringBuilder builder=new StringBuilder();
 		
@@ -1070,4 +1052,23 @@ public abstract class AbstractSQLDAO /*extends JdbcManager*/ implements BackEndI
 			MySQLDataBase.endThreadLocal(forzeClean);
 		}
 	}
+
+	public TestResult test() {		
+		TestResult ret=new TestResult(AbstractDAO.class);
+				
+		if (dataBase==null){
+			ret.addError("The database is null. Not yet defined");
+		} else  {
+			ret.add(dataBase.test());
+		}
+		
+		try {
+			hasNext(TEST_QUERY);
+		} catch (Exception e) {
+			ret.addError("Connection test error", e);
+		}
+				
+		return ret;
+	}
+
 }

@@ -22,7 +22,7 @@ import eu.ginere.base.util.dao.KeyDTO;
  * @param <I>
  * @param <T>
  */
-public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends AbstractSQLDAO implements KeyDAOInterface<T>{
+public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends AbstractDAO implements KeyDAOInterface<T>{
 	static final Logger log = Logger.getLogger(AbstractKeyObjectSQLDAO.class);
 
 	protected final String keyColumnName;
