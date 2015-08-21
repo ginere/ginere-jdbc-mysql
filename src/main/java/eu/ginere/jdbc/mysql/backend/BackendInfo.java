@@ -8,22 +8,24 @@ package eu.ginere.jdbc.mysql.backend;
 
 import java.util.Date;
 
-import eu.ginere.base.util.dao.cache.impl.AbstractKeyCacheObject;
+import eu.ginere.jdbc.mysql.KeyDTO;
 
 /**
  *
  * @author Angel Mendo
  * @version $Revision: 1.1 $
  */
-public class BackendInfo extends AbstractKeyCacheObject {
+public class BackendInfo extends KeyDTO /*AbstractKeyCacheObject */{
 
 	private int version;
+	protected long lastUpdate;
 	
 	public BackendInfo(String id,
 					   int version) {
 		
-		super(id,System.currentTimeMillis());
-		
+		super(id);
+
+		this.lastUpdate=System.currentTimeMillis();
 		this.version=version;
 	}
 
@@ -32,11 +34,15 @@ public class BackendInfo extends AbstractKeyCacheObject {
 					   int version,
 					   long lastUpdate) {
 		
-		super(id,lastUpdate);
-		
+		super(id);
+
+		this.lastUpdate=lastUpdate;		
 		this.version=version;
 	}
 
+	public long lastUpdate(){
+		return lastUpdate;
+	}
 	
 	/**
 	 * @return

@@ -3,17 +3,17 @@ package eu.ginere.jdbc.mysql.dao.test;
 import java.util.List;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.base.util.dao.KeyDTO;
-import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
+import eu.ginere.jdbc.mysql.KeyDTO;
+import eu.ginere.jdbc.mysql.dao.AbstractKeyDao;
 
-public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends AbstractSQLDAOTest {
+public abstract class AbstractKeyDaoTest<T extends KeyDTO> extends AbstractSQLDAOTest {
 
-	protected AbstractKeyObjectSQLDAOTest(AbstractKeyObjectSQLDAO<T> DAO){
+	protected AbstractKeyDaoTest(AbstractKeyDao<T> DAO){
 		super(DAO,false);
 		
 	}
 
-	protected AbstractKeyObjectSQLDAOTest(AbstractKeyObjectSQLDAO<T> DAO,boolean removeBackEnd){
+	protected AbstractKeyDaoTest(AbstractKeyDao<T> DAO,boolean removeBackEnd){
 		super(DAO,removeBackEnd);
 	}
 
@@ -21,7 +21,7 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 	public void innerTestKeyBackEnd() throws Exception {		
 		try {
 			setDataSource();
-			AbstractKeyObjectSQLDAO<T> keyDAO=(AbstractKeyObjectSQLDAO<T>)DAO;
+			AbstractKeyDao<T> keyDAO=(AbstractKeyDao<T>)DAO;
 				
 			List<T> listAll=keyDAO.getAll();
 			List<String> listAllIds=keyDAO.getAllIds();
@@ -49,11 +49,11 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 	public void innerTestInsert() throws Exception {		
 		try {
 			setDataSource();
-			AbstractKeyObjectSQLDAO<T> keyDAO=(AbstractKeyObjectSQLDAO<T>)DAO;
+			AbstractKeyDao<T> keyDAO=(AbstractKeyDao<T>)DAO;
 			
 			cleanTestBeforeStart();
 			T obj=getTestObj();
-			String id=obj.getId();
+			String id=obj.getKey();
 			
 			// First erase objects from old tests
 			if (id!=null && keyDAO.exists(id)){
@@ -106,9 +106,13 @@ public abstract class AbstractKeyObjectSQLDAOTest<T extends KeyDTO> extends Abst
 	protected abstract T getTestObj() throws DaoManagerException;
 	protected abstract void cleanTestBeforeStart() throws DaoManagerException;
 	
-	protected void executeText() throws Exception {
+	protected void executeText() throws Exception {		
 		innerTestBackEnd();		
 		innerTestKeyBackEnd();
+		
+		// Test the DAO dependencies
+		DAO.test();
+		
 		innerTestInsert();
 	}
 }

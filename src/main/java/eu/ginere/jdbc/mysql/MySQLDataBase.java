@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.naming.InitialContext;
@@ -187,6 +188,38 @@ public class MySQLDataBase implements TestInterface{
 	
 	
 	
+	
+	public static HashSet<String> getHashSet(PreparedStatement pstm,
+											 String query) throws DaoManagerException {
+		long time = 0;
+		if (log.isDebugEnabled()) {
+			time = System.currentTimeMillis();
+		}
+		
+		try {
+			ResultSet rset = executeQuery(pstm,query);
+			try {
+				HashSet<String> ret = new HashSet<String>(rset.getFetchSize());
+				
+				while (rset.next()) {
+					ret.add(rset.getString(1));
+				}
+				return ret;
+			} catch (SQLException e) {
+				throw new DaoManagerException("While executing query:'" + query+ "'", e);
+			}finally{
+				close(rset);
+			}
+		} finally {			
+			if (log.isDebugEnabled()) {
+				log.debug("query:'" + query + "' executed in:"
+						+ (System.currentTimeMillis() - time) + " mill");
+			}
+		}
+	}
+	
+	
+	
 
 	public static String getString(PreparedStatement pstm,
 								   String query) throws DaoManagerException {
@@ -216,11 +249,9 @@ public class MySQLDataBase implements TestInterface{
 		}
 	}
 	
-	
-	
-
-	public static String getString(PreparedStatement pstm,
-								   String query,String defaultValue) throws DaoManagerException {
+	public static String getString(PreparedStatement pstm,								  
+								   String defaultValue,
+								   String query) throws DaoManagerException {
 		long time = 0;
 		if (log.isDebugEnabled()) {
 			time = System.currentTimeMillis();
@@ -244,6 +275,20 @@ public class MySQLDataBase implements TestInterface{
 				log.debug("query:'" + query + "' executed in:"
 						+ (System.currentTimeMillis() - time) + " mill");
 			}
+		}
+	}
+	
+	public String getString(String query,String defaultValue) throws DaoManagerException {
+		Connection connection = getConnection();
+		try{
+			PreparedStatement pstm = getPrepareStatement(connection,query);
+			try {
+				return getString(pstm, defaultValue,query);
+			}finally{
+				close(pstm);
+			}
+		} finally {
+			closeConnection(connection);
 		}
 	}
 	
@@ -902,6 +947,11 @@ public class MySQLDataBase implements TestInterface{
 	
 	public List<String> getDatabases() throws DaoManagerException {
 		return getStringList(GET_DATA_BASES_QUERY);        
+	}
+
+	private static final String GET_SELECTED_DATABASE = "SELECT DATABASE();";
+	public String getSelectedDatabase() throws DaoManagerException {
+		return getString(GET_SELECTED_DATABASE,null);        
 	}
 
 	public boolean exitsDatabase(String databaseName) throws DaoManagerException {

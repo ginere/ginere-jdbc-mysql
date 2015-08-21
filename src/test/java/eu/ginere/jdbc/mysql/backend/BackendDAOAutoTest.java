@@ -9,9 +9,9 @@ import eu.ginere.jdbc.mysql.MySQLDataBase;
 import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
 import eu.ginere.jdbc.mysql.backend.BackendDAO;
 import eu.ginere.jdbc.mysql.backend.BackendInfo;
-import eu.ginere.jdbc.mysql.dao.test.AbstractKeyObjectSQLDAOTest;
+import eu.ginere.jdbc.mysql.dao.test.AbstractKeyDaoTest;
 
-public class BackendDAOAutoTest extends AbstractKeyObjectSQLDAOTest<BackendInfo>{
+public class BackendDAOAutoTest extends AbstractKeyDaoTest<BackendInfo>{
 	
 	public BackendDAOAutoTest(){
 		super(BackendDAO.DAO,false);

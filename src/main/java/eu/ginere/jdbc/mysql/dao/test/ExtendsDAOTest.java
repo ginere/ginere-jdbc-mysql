@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.Test;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.jdbc.mysql.KeyDTO;
 import eu.ginere.jdbc.mysql.dao.ExtendsDAO;
 
 public abstract class ExtendsDAOTest<I extends KeyDTO,T extends I> extends AbstractSQLDAOTest {
@@ -56,7 +56,7 @@ public abstract class ExtendsDAOTest<I extends KeyDTO,T extends I> extends Abstr
 			ExtendsDAO<I ,T> keyDAO=(ExtendsDAO<I ,T>)DAO;
 			
 			T obj=getTestObj();
-			String id=obj.getId();
+			String id=obj.getKey();
 			
 			// First erase objects from old tests
 			if (id!=null && keyDAO.exists(id)){

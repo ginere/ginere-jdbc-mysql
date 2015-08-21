@@ -72,6 +72,7 @@ public class ThreadLocalConection {
 		ThreadLocalConection ret= threadLocalConection.get();
 
 		if (ret==null){
+			log.warn("Starting thread local at thread:"+Thread.currentThread().getName());
 			ret = new ThreadLocalConection();
 			threadLocalConection.set(ret);
 		}

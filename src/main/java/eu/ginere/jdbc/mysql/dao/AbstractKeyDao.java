@@ -12,7 +12,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.base.util.test.TestResult;
+import eu.ginere.jdbc.mysql.KeyDTO;
 
 /**
  * @author ventura
@@ -22,17 +23,19 @@ import eu.ginere.base.util.dao.KeyDTO;
  * @param <I>
  * @param <T>
  */
-public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends AbstractDAO implements KeyDAOInterface<T>{
-	static final Logger log = Logger.getLogger(AbstractKeyObjectSQLDAO.class);
+public abstract class AbstractKeyDao<T extends KeyDTO> extends AbstractDAO implements KeyDAOInterface<T>{
+	static final Logger log = Logger.getLogger(AbstractKeyDao.class);
 
 	protected final String keyColumnName;
 	protected final String columnsArrayMinusKeyColumnName[];
 	protected final String columnsName[];
 
 	protected final String GET_BY_ID_QUERY;
+	protected final String GET_ALL_QUERY_LIMIT;
+
 	protected final String GET_ALL_QUERY;
 	protected final String GET_ALL_IDS;
-	protected final String COUNT_QUERY;
+//	protected final String COUNT_QUERY;
 	protected final String DELETE_QUERY;
 
 	protected final String INSERT_QUERY_VALID_KEY;
@@ -44,11 +47,11 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 	protected final String  COLUMNS_INCLUDING_COLUMN_NAME;
 	
 	
-	protected AbstractKeyObjectSQLDAO(String tableName,
-									  String keyColumnName,
-									  String columnsArrayMinusKeyColumnName[],
-									  String createQueryArray[][],
-									  String deleteQueryArray[]){
+	protected AbstractKeyDao(String tableName,
+							 String keyColumnName,
+							 String columnsArrayMinusKeyColumnName[],
+							 String createQueryArray[][],
+							 String deleteQueryArray[]){		
 		super(tableName,createQueryArray,deleteQueryArray);
 		
 		this.keyColumnName=keyColumnName;
@@ -69,8 +72,10 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 		this.GET_BY_ID_QUERY="SELECT "+COLUMNS_MINUS_COLUMN_NAME+
 			" from "+tableName + " WHERE "+keyColumnName+"=? LIMIT 1";
 		this.GET_ALL_QUERY="select " + COLUMNS_INCLUDING_COLUMN_NAME+ " from " + tableName+ " ";
+		this.GET_ALL_QUERY_LIMIT="select " + COLUMNS_INCLUDING_COLUMN_NAME+ " from " + tableName+ " limit ?";
+
 		this.GET_ALL_IDS="SELECT "+keyColumnName+" from "+tableName;
-		this.COUNT_QUERY="select count(*) from " + tableName;
+//		this.COUNT_QUERY="select count(*) from " + tableName;
 		this.DELETE_QUERY="DELETE from " + tableName + " where "+keyColumnName+"=?";
 
 
@@ -140,54 +145,6 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 				
 		this.UPDATE_QUERY=updateBuilder.toString();
 				
-	}
-	
-	protected static String getQueryForOneResultOneColumn(String tableName,
-														  String columnName) {
-		return "select * from " + tableName
-		+ " where "+columnName+"=? LIMIT 1";
-	}
-	
-	public T getOneValueForOneColmunQuery(String query,String value) throws DaoManagerException {
-		T ret=getOneValueForOneColmunQuery(query, value,null);
-		
-		if (ret==null){
-			throw new DaoManagerException("Nout found, column value:"+value);
-		} else {
-			return ret;
-		}
-	}
-	
-	public T getOneValueForOneColmunQuery(String query,String value, T defaultValue) throws DaoManagerException {
-		
-		Connection connection = getConnection();
-		try {
-			PreparedStatement pstm = getPrepareStatement(connection, query);
-			try {
-				
-				setString(pstm, 1, value, query);
-				
-				ResultSet rset = executeQuery(pstm, query);
-				try {
-					if (rset.next()) {
-						return  createFromResultSet(rset,query);
-					} else {
-						return defaultValue;
-					}
-				} catch (SQLException e) {
-					String error = "query:'"+query+"' value:'" + value + "'";
-
-					throw new DaoManagerException(error, e);
-				}finally{
-					close(rset);
-				}
-			}finally{
-				close(pstm);
-			}
-
-		} finally {
-			closeConnection(connection);
-		}
 	}
 	
 	public T get(String id) throws DaoManagerException {
@@ -317,17 +274,53 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
                         list.add(t);
                     }
                     return list;
+				}catch (SQLException e){
+					String error="Query:'" + query+"'";
+					throw new DaoManagerException(error,e);
                 }finally{
                     close(rset);
                 }
             }finally{
                 close(pstm);
             }
-		}catch (SQLException e){
-			String error="Query:'" + query+"'";
-			throw new DaoManagerException(error,e);
 		}catch (DaoManagerException e) {
 			String error="Query:'" + query+"'";
+			throw new DaoManagerException(error, e);
+		}finally{
+			closeConnection(connection);
+		}
+	}
+
+	public List<T> getAll(int limit) throws DaoManagerException{
+		Connection connection=getConnection();
+		String query=GET_ALL_QUERY_LIMIT;
+
+		try{
+			PreparedStatement pstm = getPrepareStatement(connection,query);		
+			try {
+				setInt(pstm, 1, limit, query);
+				
+				ResultSet rset = executeQuery(pstm,query);
+				try {
+					List<T> list= new ArrayList<T>();
+					
+					while (rset.next()){
+						T t=createFromResultSet(rset,query);
+						list.add(t);
+					}
+					return list;
+				}catch (SQLException e){
+					String error="Query:'" + query+"'";
+					throw new DaoManagerException(error,e);
+				}finally{
+					close(rset);
+				}
+
+			} finally {
+				closeConnection(connection);
+			}
+		}catch (DaoManagerException e) {
+			String error="Query" + query;
 			throw new DaoManagerException(error, e);
 		}finally{
 			closeConnection(connection);
@@ -346,32 +339,32 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
             }
 		}catch (DaoManagerException e) {
 			String error="Query:'" + query+"'";
-			log.error(error, e);
+
 			throw new DaoManagerException(error, e);
 		}finally{
 			closeConnection(connection);
 		}
 	}
 
-	public long count() throws DaoManagerException{
-		Connection connection=getConnection();
-		String query=COUNT_QUERY;
-		try{
-			PreparedStatement pstm = getPrepareStatement(connection,query);
-			try {
-                return getLongFromQuery(pstm, query, 0);
-            }finally{
-                close(pstm);
-            }
-		}catch (DaoManagerException e) {
-			String error="Query:'" + query+"'";
-			log.error(error, e);
-			throw new DaoManagerException(error, e);
-		}finally{
-			closeConnection(connection);
-		}
-	}
-	
+//	public long count() throws DaoManagerException{
+//		Connection connection=getConnection();
+//		String query=COUNT_QUERY;
+//		try{
+//			PreparedStatement pstm = getPrepareStatement(connection,query);
+//			try {
+//                return getLongFromQuery(pstm, query, 0);
+//            }finally{
+//                close(pstm);
+//            }
+//		}catch (DaoManagerException e) {
+//			String error="Query:'" + query+"'";
+//
+//			throw new DaoManagerException(error, e);
+//		}finally{
+//			closeConnection(connection);
+//		}
+//	}
+//	
 	public void delete(String id)throws DaoManagerException{
 		Connection connection = getConnection();
 		String query=DELETE_QUERY;
@@ -388,6 +381,7 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
             }
 		} catch (DaoManagerException e) {
 			String error = "id:'" + id + "' query:"+query;
+
 			throw new DaoManagerException(error, e);
 		} finally {
 			closeConnection(connection);
@@ -396,6 +390,7 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 	
 	/**
 	 * The id of the object must not be mull
+	 *
 	 * @param interf
 	 * @return
 	 * @throws DaoManagerException
@@ -428,7 +423,7 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
                 
                 executeUpdate(pstmInsert, query);
                 
-                return interf.getId();
+                return interf.getKey();
             }finally{
                 close(pstmInsert);
             }
@@ -460,7 +455,8 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
                 
                 executeUpdate(pstmInsert, query);
                 
-                return interf.getId();
+				// return interf.getId();
+                return id;
             }finally{
                 close(pstmInsert);
             }
@@ -541,15 +537,15 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
                         list.add(t);
                     }
                     return list;
+				}catch (SQLException e){
+					String error="Query:'" + query+"'";
+					throw new DaoManagerException(error,e);
                 }finally{
                     close(rset);
                 }                
             }finally{
                 close(pstm);
             }
-		}catch (SQLException e){
-			String error="Query:'" + query+"'";
-			throw new DaoManagerException(error,e);
 		}catch (DaoManagerException e) {
 			String error="Query:'" + query+"'";
 			throw new DaoManagerException(error, e);
@@ -560,6 +556,194 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
+	}
+
+	/**
+	 * Tiene que leer todas las columnas menos la columna de la primary key
+	 */
+	public abstract T createFromResultSet(String id,ResultSet rset,String query) throws SQLException, DaoManagerException;
+	
+	protected T createFromResultSet(ResultSet rset,String query)throws SQLException, DaoManagerException {
+		String id=getString(rset,keyColumnName,query);
+		
+		return createFromResultSet(id,rset,query);
+	}
+
+	/**
+	 * To iterate over all the elements of the table
+	 */
+	public interface Iterator<T>{
+		/**
+		 * @param id
+		 * @param name
+		 * @param folderFullName
+		 * @return while this return true, continues working
+		 */
+		boolean access(T i);		
+	};
+
+
+	public void iterate(Iterator<T> i) throws DaoManagerException {
+		
+		Connection connection=getConnection();
+		String query=GET_ALL_QUERY;
+
+		try{
+			PreparedStatement pstm = getPrepareStatement(connection,query);			
+			try {
+				iterate(i, pstm, query);
+				return ;
+			}finally{
+				close(pstm);
+			}							
+		}catch (DaoManagerException e) {
+			String error="Query" + query;
+			throw new DaoManagerException(error, e);
+		}finally{
+			closeConnection(connection);
+		}
+	}
+
+	public long iterate(Iterator<T> i,PreparedStatement pstm,String query ) throws DaoManagerException {
+		ResultSet rset = executeQuery(pstm,query);
+		int ret=0;
+		try {
+			while (rset.next()){
+				T t=createFromResultSet(rset,query);
+				if (!i.access(t)){
+					return ret++;
+				}
+				ret++;
+			}
+			return ret;
+		}catch (SQLException e){
+			String error="Query" + query;
+			throw new DaoManagerException(error,e);
+		}finally{
+			close(rset);
+		}
+	}
+
+
+
+	/**
+	 * Vuelca todos los 
+	 * @param pstmInsert
+	 * @param obj
+	 * @param query
+	 * @throws DaoManagerException
+	 */
+//	protected abstract void setInsertStatementFromSequence(PreparedStatement pstm,String id,T obj,String query) throws DaoManagerException;
+//	protected abstract void setInsertFromAutoIncrementKeyColumnStatement(PreparedStatement pstm,String id,T obj,String query) throws DaoManagerException;
+//	protected abstract void setInsertStatement(PreparedStatement pstm,T obj,String query) throws DaoManagerException;
+//	protected abstract void setUpdateStatement(PreparedStatement pstm,T obj,String query) throws DaoManagerException;
+
+	protected void setInsertStatement(PreparedStatement pstm,
+									  T obj, 
+									  String query)throws DaoManagerException {
+		set(pstm,1, obj.getKey(), query);
+		fillUpdateStatement(pstm, obj, 2,query);
+	}
+
+	protected void setInsertStatement(PreparedStatement pstm,
+									  String id,
+									  T obj, 
+									  String query)throws DaoManagerException {
+		set(pstm,1, id, query);
+		fillUpdateStatement(pstm, obj, 2,query);
+	}
+	
+	protected void setUpdateStatement(PreparedStatement pstm, 
+									  T obj,
+									  String query) throws DaoManagerException {
+
+		int i=fillUpdateStatement(pstm, obj, 1, query);
+
+		set(pstm,i, obj.getKey(), query);
+	}
+	
+	/**
+	 * @param pstm
+	 * @param obj
+	 * @param firstIndex
+	 * @param query
+	 * @return The last index when a new column could be inserted
+	 * @throws DaoManagerException
+	 */
+	protected abstract int fillUpdateStatement(PreparedStatement pstm,
+											   T obj, 
+											   int firstIndex,
+											   String query)throws DaoManagerException ;
+
+	@Override
+	public TestResult test() {
+		TestResult ret=new TestResult(getClass());
+		TestResult parent=super.test();
+		
+		ret.add(parent);
+		
+		if (parent.isOK()){
+			try {
+				getAll(1);
+			} catch (DaoManagerException e) {
+				ret.addError("While getting one line from database", e);
+			}
+		} 
+		
+		return ret;
+	}
+
+
+
+	/***
+	 *
+	 */
+	protected static String getQueryForOneResultOneColumn(String tableName,
+														  String columnName) {
+		return "select * from " + tableName
+		+ " where "+columnName+"=? LIMIT 1";
+	}
+	
+	public T getOneValueForOneColmunQuery(String query,String value) throws DaoManagerException {
+		T ret=getOneValueForOneColmunQuery(query, value,null);
+		
+		if (ret==null){
+			throw new DaoManagerException("Nout found, column value:"+value);
+		} else {
+			return ret;
+		}
+	}
+	
+	public T getOneValueForOneColmunQuery(String query,String value, T defaultValue) throws DaoManagerException {
+		
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+			try {
+				
+				setString(pstm, 1, value, query);
+				
+				ResultSet rset = executeQuery(pstm, query);
+				try {
+					if (rset.next()) {
+						return  createFromResultSet(rset,query);
+					} else {
+						return defaultValue;
+					}
+				} catch (SQLException e) {
+					String error = "query:'"+query+"' value:'" + value + "'";
+
+					throw new DaoManagerException(error, e);
+				}finally{
+					close(rset);
+				}
+			}finally{
+				close(pstm);
+			}
+
+		} finally {
+			closeConnection(connection);
+		}
 	}
 
 	/**
@@ -595,67 +779,6 @@ public abstract class AbstractKeyObjectSQLDAO<T extends KeyDTO> extends Abstract
 			return 0;
 		}
 	}
-
-	/**
-	 * Tiene que leer todas las columnas menos la columna de la primary key
-	 */
-	public abstract T createFromResultSet(String id,ResultSet rset,String query) throws SQLException, DaoManagerException;
-
-//	/**
-//	 * Tiene que leer todas las columnas del objeto
-//	 */
-//	protected abstract T createFromResultSet(ResultSet rset,String query) throws SQLException, DaoManagerException;
 	
-	protected T createFromResultSet(ResultSet rset,String query)throws SQLException, DaoManagerException {
-		return createFromResultSet(getString(rset,keyColumnName,query),rset,query);
-	}
 
-	/**
-	 * Vuelca todos los 
-	 * @param pstmInsert
-	 * @param obj
-	 * @param query
-	 * @throws DaoManagerException
-	 */
-//	protected abstract void setInsertStatementFromSequence(PreparedStatement pstm,String id,T obj,String query) throws DaoManagerException;
-//	protected abstract void setInsertFromAutoIncrementKeyColumnStatement(PreparedStatement pstm,String id,T obj,String query) throws DaoManagerException;
-//	protected abstract void setInsertStatement(PreparedStatement pstm,T obj,String query) throws DaoManagerException;
-//	protected abstract void setUpdateStatement(PreparedStatement pstm,T obj,String query) throws DaoManagerException;
-
-	protected void setInsertStatement(PreparedStatement pstm,
-									  T obj, 
-									  String query)throws DaoManagerException {
-		set(pstm,1, obj.getId(), query);
-		setInsertColumns(pstm, obj, 2,query);
-	}
-
-	protected void setInsertStatement(PreparedStatement pstm,
-									  String id,
-									  T obj, 
-									  String query)throws DaoManagerException {
-		set(pstm,1, id, query);
-		setInsertColumns(pstm, obj, 2,query);
-	}
-	
-	protected void setUpdateStatement(PreparedStatement pstm, 
-									  T obj,
-									  String query) throws DaoManagerException {
-
-		int i=setInsertColumns(pstm, obj, 1, query);
-
-		set(pstm,i, obj.getId(), query);
-	}
-	
-	/**
-	 * @param pstm
-	 * @param obj
-	 * @param firstIndex
-	 * @param query
-	 * @return the last index when o new column will be inserted
-	 * @throws DaoManagerException
-	 */
-	protected abstract int setInsertColumns(PreparedStatement pstm,
-											T obj, 
-											int firstIndex,
-											String query)throws DaoManagerException ;
 }

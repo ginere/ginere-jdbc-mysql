@@ -12,7 +12,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.jdbc.mysql.KeyDTO;
 import eu.ginere.jdbc.mysql.dao.ParentQueryDAO.ChildDAOInterface;
 
 /**
@@ -33,7 +33,7 @@ public abstract class ExtendsDAO<I extends KeyDTO,T extends I> extends AbstractD
 	static final Logger log = Logger.getLogger(ExtendsDAO.class);
 
 
-	private final AbstractKeyObjectSQLDAO<I> parentDao;
+	private final AbstractKeyDao<I> parentDao;
 	private final String keyColumnName;
 
 	protected final String GET_BY_ID_QUERY;
@@ -52,7 +52,7 @@ public abstract class ExtendsDAO<I extends KeyDTO,T extends I> extends AbstractD
 	private final String tableName;
 
 
-	protected ExtendsDAO(AbstractKeyObjectSQLDAO<I> parentDao,
+	protected ExtendsDAO(AbstractKeyDao<I> parentDao,
 							  String childTableName,
 							  String childColumnsArrayMinusKeyColumnName[],
 							  String createChildTableQueryArray[][]){
@@ -478,7 +478,7 @@ public abstract class ExtendsDAO<I extends KeyDTO,T extends I> extends AbstractD
 		
 		int i=setInsertColumnsInner(pstm, obj, 1, query);
 		
-		set(pstm,i, obj.getId(), query);
+		set(pstm,i, obj.getKey(), query);
 	}
 
 	protected void setInsertStatement(PreparedStatement pstm,

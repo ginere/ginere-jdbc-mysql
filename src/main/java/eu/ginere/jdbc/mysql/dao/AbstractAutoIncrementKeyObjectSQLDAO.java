@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.base.util.dao.KeyAutoincrementDTO;
+import eu.ginere.jdbc.mysql.KeyDTO;
 
 /**
  * @author ventura
@@ -16,7 +16,7 @@ import eu.ginere.base.util.dao.KeyAutoincrementDTO;
  * @param <I>
  * @param <T>
  */
-public abstract class AbstractAutoIncrementKeyObjectSQLDAO<T extends KeyAutoincrementDTO> extends AbstractKeyObjectSQLDAO<T> implements KeyDAOInterface<T>{
+public abstract class AbstractAutoIncrementKeyObjectSQLDAO<T extends KeyDTO> extends AbstractKeyDao<T> implements KeyDAOInterface<T>{
 
 	protected final String INSERT_QUERY_AUTO_INCREMENT;
 	
@@ -75,7 +75,7 @@ public abstract class AbstractAutoIncrementKeyObjectSQLDAO<T extends KeyAutoincr
                         try {
                             if(rset.next()){
                                 String id=rset.getString(1);
-                                interf.setId(id);
+                                interf.setKey(id);
                                 
                                 return id;
                             }else{
@@ -130,6 +130,6 @@ public abstract class AbstractAutoIncrementKeyObjectSQLDAO<T extends KeyAutoincr
 	protected void setInsertFromAutoIncrementKeyColumnStatement(PreparedStatement pstm,
 																T obj,
 																String query) throws DaoManagerException{
-		setInsertColumns(pstm, obj, 1,query);
+		fillUpdateStatement(pstm, obj, 1,query);
 	}
 }

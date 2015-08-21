@@ -40,8 +40,12 @@ public class MySQLDataBaseTest extends TestCase {
 			MySQLDataBase.DEFAULT_DATABASE.createDatabase(BDNAME);
 			assertTrue(MySQLDataBase.DEFAULT_DATABASE.exitsDatabase(BDNAME));			
 
+			// TODO THIS DOES NOT WORK, WHY ???
 			MySQLDataBase.DEFAULT_DATABASE.useDatabase(BDNAME);
-            
+            String selectedDatabase=MySQLDataBase.DEFAULT_DATABASE.getSelectedDatabase();
+            log.debug("Selected Database:"+selectedDatabase);
+			assertNotNull(selectedDatabase);			
+
 			MySQLDataBase.DEFAULT_DATABASE.dropDatabase(BDNAME);
 			assertFalse(MySQLDataBase.DEFAULT_DATABASE.exitsDatabase(BDNAME));
 			

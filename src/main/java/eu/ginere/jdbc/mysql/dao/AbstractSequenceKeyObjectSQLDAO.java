@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.base.util.dao.KeyDTO;
+import eu.ginere.jdbc.mysql.KeyDTO;
 
 /**
  * @author ventura
@@ -16,7 +16,7 @@ import eu.ginere.base.util.dao.KeyDTO;
  * @param <I>
  * @param <T>
  */
-public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends AbstractKeyObjectSQLDAO<T> implements KeyDAOInterface<T>{
+public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends AbstractKeyDao<T> implements KeyDAOInterface<T>{
 
 	protected final String SEQUENCE_NAME;
 	protected final String SEQUENCE_QUERY;
@@ -167,7 +167,7 @@ public abstract class AbstractSequenceKeyObjectSQLDAO<T extends KeyDTO> extends 
                                                   T obj,
                                                   String query) throws DaoManagerException{
 		set(pstm,1, id, query);
-		setInsertColumns(pstm, obj, 2,query);
+		fillUpdateStatement(pstm, obj, 2,query);
 	}
 	
 	@Override

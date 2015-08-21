@@ -12,7 +12,7 @@ import org.junit.Test;
 import eu.ginere.jdbc.mysql.MySQLDataBase;
 import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
 import eu.ginere.jdbc.mysql.backend.BackendDAO;
-import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractKeyDao;
 import eu.ginere.jdbc.mysql.dao.AbstractDAO;
 
 public class BackendDAOTest extends TestCase{
@@ -68,7 +68,7 @@ public class BackendDAOTest extends TestCase{
 			testBackEnd();
 //			setDataSource();
 			
-			AbstractKeyObjectSQLDAO DAO=BackendDAO.DAO;
+			AbstractKeyDao DAO=BackendDAO.DAO;
 				
 			List listAll=DAO.getAll();
 			List<String> listAllIds=DAO.getAllIds();

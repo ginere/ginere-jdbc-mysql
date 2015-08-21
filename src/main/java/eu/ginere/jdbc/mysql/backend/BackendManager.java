@@ -36,7 +36,7 @@ public class BackendManager {
 	 * necessary
 	 * @throws DaoManagerException 
 	 */
-	public int getBackendVersion(Class clazz) throws DaoManagerException{
+	public int getBackendVersion(Class<?> clazz) throws DaoManagerException{
 		String id=clazz.getName();
 
 		if (BackendDAO.DAO.exists(id)){
@@ -49,7 +49,7 @@ public class BackendManager {
 	}
 
 
-	public static void setCurrentVersion(Class clazz,int version) throws DaoManagerException {
+	public static void setCurrentVersion(Class<?> clazz,int version) throws DaoManagerException {
 		String id=clazz.getName();
 
 		if (BackendDAO.DAO.exists(id)){
@@ -64,7 +64,7 @@ public class BackendManager {
 	}
 
 
-	public static BackendInfo getInfo(Class clazz) {
+	public static BackendInfo getInfo(Class<?> clazz) {
 		String id=clazz.getName();
 
 		try {
@@ -79,7 +79,7 @@ public class BackendManager {
 	}
 
 
-	public static void delete(Class clazz) {
+	public static void delete(Class<?> clazz) {
 		String id=clazz.getName();
 
 		try {

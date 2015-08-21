@@ -6,9 +6,9 @@ import java.sql.SQLException;
 import java.util.Date;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.dao.AbstractKeyObjectSQLDAO;
+import eu.ginere.jdbc.mysql.dao.AbstractKeyDao;
 
-public class BackendDAO extends AbstractKeyObjectSQLDAO<BackendInfo>{
+public class BackendDAO extends AbstractKeyDao<BackendInfo>{
 	
 	static final private String CREATE_QUERY_ARRAY[][]=new String[][]{
 		{ //V1
@@ -53,7 +53,7 @@ public class BackendDAO extends AbstractKeyObjectSQLDAO<BackendInfo>{
 	}
 	
 	@Override
-	protected int setInsertColumns(PreparedStatement pstm,
+	protected int fillUpdateStatement(PreparedStatement pstm,
 								   BackendInfo obj, 
 								   int firstIndex,
 								   String query)throws DaoManagerException {
