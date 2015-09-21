@@ -491,35 +491,99 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 	protected static String getStringFromQuery(PreparedStatement pstm, 
                                                String query,
                                                String defaultValue) throws DaoManagerException {
-        /*
-		long time = 0;
-		if (log.isInfoEnabled()) {
-			time = System.currentTimeMillis();
-		}
-		try {
-			ResultSet rset = pstm.executeQuery();
-			if (!rset.next()) {
-				return defaultValue;
-			} else {
-				String ret= rset.getString(1);
-				if (rset.wasNull()){
-					return defaultValue;
-				} else {
-					return ret;
-				}
-			}
-
-		} catch (SQLException e) {
-			throw new DaoManagerException("While executing query:'" + query
-					+ "'", e);
-		} finally {
-			if (log.isInfoEnabled()) {
-				log.info("query:'" + query + "' executed in:"
-						+ (System.currentTimeMillis() - time) + " mill");
-			}
-		}
-        */
 		return MySQLDataBase.getString(pstm,defaultValue,query);
+	}
+
+	public String getStringFromQuery(String query,String defaultValue) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+			
+            try {
+        		return MySQLDataBase.getString(pstm,defaultValue,query);
+            }finally{
+                close(pstm);
+            }
+		} catch (DaoManagerException e) {
+			String error = "query:'"+query+
+						"'";
+
+			throw new DaoManagerException(error, e);
+		} finally {
+			closeConnection(connection);
+		}		
+	}
+
+	public String getStringFromOneArgs(String query,Object arg1,String defaultValue) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+			set(pstm, 1, arg1, query);
+			
+            try {
+        		return MySQLDataBase.getString(pstm,defaultValue,query);
+            }finally{
+                close(pstm);
+            }
+		} catch (DaoManagerException e) {
+			String error = "query:'"+query+
+						"' arg1:'" + arg1 + 
+						"'";
+
+			throw new DaoManagerException(error, e);
+		} finally {
+			closeConnection(connection);
+		}		
+	}
+	
+	public String getStringFromTwoArgs(String query,Object arg1,String arg2,String defaultValue) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+			set(pstm, 1, arg1, query);
+			set(pstm, 2, arg2, query);
+			
+            try {
+        		return MySQLDataBase.getString(pstm,defaultValue,query);
+            }finally{
+                close(pstm);
+            }
+		} catch (DaoManagerException e) {
+			String error = "query:'"+query+
+						"' arg1:'" + arg1 + 
+						"' arg2:'" + arg2 + 
+						"'";
+
+			throw new DaoManagerException(error, e);
+		} finally {
+			closeConnection(connection);
+		}		
+	}
+	
+	public String getStringFromThreeArgs(String query,Object arg1,String arg2, Object arg3,String defaultValue) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+			set(pstm, 1, arg1, query);
+			set(pstm, 2, arg2, query);
+			set(pstm, 3, arg3, query);
+			
+            try {
+        		return MySQLDataBase.getString(pstm,defaultValue,query);
+            }finally{
+                close(pstm);
+            }
+		} catch (DaoManagerException e) {
+			String error = "query:'"+query+
+						"' arg1:'" + arg1 + 
+						"' arg2:'" + arg2 + 
+						"' arg3:'" + arg3 + 
+						"'";
+
+			throw new DaoManagerException(error, e);
+		} finally {
+			closeConnection(connection);
+		}		
 	}
 	
 	
