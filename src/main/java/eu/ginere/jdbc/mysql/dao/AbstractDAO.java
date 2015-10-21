@@ -39,7 +39,7 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 	// public final BackendInfo backendInfo;
 	private final String createQueryArray[][];
 	private final String deleteQueryArray[];
-	private final String tableName;
+	protected final String tableName;
 	
 	private final String COUNT ;
 
@@ -286,9 +286,9 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			throw new DaoManagerException(error, e);
 		} finally {
 			closeConnection(connection);
-		}
-		
+		}		
 	}
+
 	protected static int getIntFromQuery(PreparedStatement pstm, 
 										 String query,
 										 int defaultValue) throws DaoManagerException {
@@ -600,7 +600,7 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
                 close(pstm);
             }
 		} catch (DaoManagerException e) {
-			String error = "query:'"+query+"' id:'" + value + "'";
+			String error = "query:'"+query+"' value:'" + value + "'";
 
 			throw new DaoManagerException(error, e);
 		} finally {
@@ -624,13 +624,10 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		} finally {
 			closeConnection(connection);
 		}
-//		return dataBase.hasNext(query);
-//		return hasNext(query);
 	}
 
 	/**
-	 * Pruebas si la query produce algun resultado, por ejemplo util para saber
-	 * si un elemento existe en la tabla
+	 * Usefull to test is an element exits on one table without getting the values
 	 * 
 	 * @param pstm
 	 * @param query
@@ -689,7 +686,79 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		}		
 	}
 
-	public List<String> getStringListFromTwoArg(String query,Object arg1,Object arg2) throws DaoManagerException {
+//	public List<String> getStringListFromTwoArg(String query,Object arg1,Object arg2) throws DaoManagerException {
+//		Connection connection = getConnection();
+//		try {
+//			PreparedStatement pstm = getPrepareStatement(connection, query);
+//			set(pstm, 1, arg1, query);
+//			set(pstm, 2, arg2, query);
+//			
+//            try {
+//            	return getStringList(pstm, query);
+//            }finally{
+//                close(pstm);
+//            }
+//		} catch (DaoManagerException e) {
+//			String error = "query:'"+query+
+//						"' arg1:'" + arg1 + 
+//						"' arg2:'" + arg2 + 
+//						"'";
+//
+//			throw new DaoManagerException(error, e);
+//		} finally {
+//			closeConnection(connection);
+//		}		
+//	}
+//
+//	public List<String> getStringListFromThreeArg(String query,Object arg1,String arg2, Object arg3) throws DaoManagerException {
+//		Connection connection = getConnection();
+//		try {
+//			PreparedStatement pstm = getPrepareStatement(connection, query);
+//			set(pstm, 1, arg1, query);
+//			set(pstm, 2, arg2, query);
+//			set(pstm, 3, arg3, query);
+//			
+//            try {
+//            	return getStringList(pstm, query);
+//            }finally{
+//                close(pstm);
+//            }
+//		} catch (DaoManagerException e) {
+//			String error = "query:'"+query+
+//						"' arg1:'" + arg1 + 
+//						"' arg2:'" + arg2 + 
+//						"' arg3:'" + arg3 + 
+//						"'";
+//
+//			throw new DaoManagerException(error, e);
+//		} finally {
+//			closeConnection(connection);
+//		}		
+//	}
+
+	public List<String> getStringList(String query,Object arg1) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection, query);
+			set(pstm, 1, arg1, query);
+			
+            try {
+            	return getStringList(pstm, query);
+            }finally{
+                close(pstm);
+            }
+		} catch (DaoManagerException e) {
+			String error = "query:'"+query+
+						"' arg1:'" + arg1 + 
+						"'";
+
+			throw new DaoManagerException(error, e);
+		} finally {
+			closeConnection(connection);
+		}		
+	}
+
+	public List<String> getStringList(String query,Object arg1,Object arg2) throws DaoManagerException {
 		Connection connection = getConnection();
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection, query);
@@ -712,8 +781,8 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			closeConnection(connection);
 		}		
 	}
-
-	public List<String> getStringListFromThreeArg(String query,Object arg1,String arg2, Object arg3) throws DaoManagerException {
+	
+	public List<String> getStringList(String query,Object arg1,Object arg2,Object arg3) throws DaoManagerException {
 		Connection connection = getConnection();
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection, query);
@@ -738,8 +807,6 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			closeConnection(connection);
 		}		
 	}
-
-
 	public List<String> getStringList(PreparedStatement pstm, String query) throws DaoManagerException {
 		return MySQLDataBase.getStringList(pstm, query);
 	}
@@ -769,11 +836,27 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		}	
 	}
 	
-	public long executeUpdateFromOneArg(String query,Object arg1) throws DaoManagerException {
+	public long executeUpdate(String query,Object arg1) throws DaoManagerException {
 		Connection connection = getConnection();
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,query);
 			set(pstm, 1, arg1, query);
+			try {
+				return executeUpdate(pstm, query);
+			}finally{
+				close(pstm);
+			}
+		} finally {
+			closeConnection(connection);
+		}	
+	}
+	
+	public long executeUpdate(String query,Object arg1,Object arg2) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection,query);
+			set(pstm, 1, arg1, query);
+			set(pstm, 2, arg2, query);
 			try {
 				return executeUpdate(pstm, query);
 			}finally{
@@ -1065,55 +1148,6 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		return builder.toString();
 	}
 
-	//
-	// Ejecutando los metodos quet
-	//
-
-	public static String getString(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getString(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
-	}
-
-	/**
-	 * If the result is null this retuns EMPTY_STRING_ARRAY
-	 */
-	public static int getInt(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getInt(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
-	}
-	
-	public static short getShort(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getShort(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
-	}
-	
-
-	public static byte getByte(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getByte(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
-	}
-	
-	
-	public static Timestamp getTimestamp(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getTimestamp(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
-	}
-
 	protected Date getDate(String query,Date defaultValue) throws DaoManagerException {
 		Connection connection = getConnection();
 		try {
@@ -1140,26 +1174,6 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 
 	protected Date getDate(PreparedStatement pstm, String query,Date defaultValue) throws DaoManagerException{
 		return MySQLDataBase.getDate(pstm,query,defaultValue);
-	}
-
-	public static Date getDate(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		return (Date)getTimestamp(rset,columnName,query);
-	}
-	
-	public static boolean getBoolean(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getBoolean(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
-	}
-
-	public static long getLong(ResultSet rset, String columnName,String query) throws DaoManagerException {
-		try {
-			return rset.getLong(columnName);
-		} catch (SQLException e) {
-			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
-		}
 	}
 	
 	public static Long getLongObject(ResultSet rset, String columnName,String query) throws DaoManagerException {
@@ -1321,6 +1335,7 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			return false;
 		}
 	}
+
 	public TestResult test() {		
 		TestResult ret=new TestResult(AbstractDAO.class);
 				
@@ -1373,4 +1388,79 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			close(rset);
 		}
 	}
+
+
+	//
+	// Result set methos
+	//
+
+	public static String getString(ResultSet rset, String columnName,String query) throws DaoManagerException {
+		try {
+			return rset.getString(columnName);
+		} catch (SQLException e) {
+			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
+		}
+	}
+
+	/**
+	 * If the result is null this retuns EMPTY_STRING_ARRAY
+	 */
+	public static int getInt(ResultSet rset, String columnName,String query) throws DaoManagerException {
+		try {
+			return rset.getInt(columnName);
+		} catch (SQLException e) {
+			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
+		}
+	}
+	
+	protected boolean getBoolean(ResultSet rset,String columnName,String tableName) throws DaoManagerException{
+		try {
+			return rset.getBoolean(columnName);
+		}catch(SQLException e){
+			throw new DaoManagerException("columnName:"+columnName+" tableName:"+tableName,e);
+		}
+	}
+	
+	protected long getLong(ResultSet rset,String columnName,String tableName) throws DaoManagerException{
+		try {
+			return rset.getLong(columnName);
+		}catch(SQLException e){
+			throw new DaoManagerException("columnName:"+columnName+" tableName:"+tableName,e);
+		}
+	}
+	
+	protected Date getDate(ResultSet rset,String columnName,String tableName) throws DaoManagerException{
+		try {
+			return rset.getTimestamp(columnName);
+		}catch(SQLException e){
+			throw new DaoManagerException("columnName:"+columnName+" tableName:"+tableName,e);
+		}
+	}
+
+	public static short getShort(ResultSet rset, String columnName,String query) throws DaoManagerException {
+		try {
+			return rset.getShort(columnName);
+		} catch (SQLException e) {
+			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
+		}
+	}
+	
+
+	public static byte getByte(ResultSet rset, String columnName,String query) throws DaoManagerException {
+		try {
+			return rset.getByte(columnName);
+		} catch (SQLException e) {
+			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
+		}
+	}
+		
+	public static Timestamp getTimestamp(ResultSet rset, String columnName,String query) throws DaoManagerException {
+		try {
+			return rset.getTimestamp(columnName);
+		} catch (SQLException e) {
+			throw new DaoManagerException("Query:'"+query+"' columnName:'" + columnName	+ "'", e);
+		}
+	}
+
+
 }

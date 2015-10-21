@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.Test;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.KeyDTO;
+import eu.ginere.base.util.dao.jdbc.KeyDTO;
 import eu.ginere.jdbc.mysql.dao.ExtendsDAO;
 
 public abstract class ExtendsDAOTest<I extends KeyDTO,T extends I> extends AbstractSQLDAOTest {

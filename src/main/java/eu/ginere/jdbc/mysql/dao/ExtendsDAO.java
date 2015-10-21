@@ -12,7 +12,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.KeyDTO;
+import eu.ginere.base.util.dao.jdbc.KeyDTO;
 import eu.ginere.jdbc.mysql.dao.ParentQueryDAO.ChildDAOInterface;
 
 /**

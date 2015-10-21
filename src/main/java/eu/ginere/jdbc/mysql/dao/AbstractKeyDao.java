@@ -12,8 +12,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 
 import eu.ginere.base.util.dao.DaoManagerException;
+import eu.ginere.base.util.dao.jdbc.KeyDTO;
 import eu.ginere.base.util.test.TestResult;
-import eu.ginere.jdbc.mysql.KeyDTO;
 
 /**
  * @author ventura
@@ -470,6 +470,7 @@ public abstract class AbstractKeyDao<T extends KeyDTO> extends AbstractDAO imple
 			closeConnection(connection);
 		}		
 	}
+
 	public String insert(T interf) throws DaoManagerException {
 		return insertWithValidKey(interf);
 	}
@@ -527,6 +528,82 @@ public abstract class AbstractKeyDao<T extends KeyDTO> extends AbstractDAO imple
 
 		try{
 			PreparedStatement pstm = getPrepareStatement(connection,query);			
+            try {
+                ResultSet rset = executeQuery(pstm,query);
+                try {
+                    List<T> list= new ArrayList<T>(rset.getFetchSize());
+                    
+                    while (rset.next()){
+                        T t=createFromResultSet(rset,query);
+                        list.add(t);
+                    }
+                    return list;
+				}catch (SQLException e){
+					String error="Query:'" + query+"'";
+					throw new DaoManagerException(error,e);
+                }finally{
+                    close(rset);
+                }                
+            }finally{
+                close(pstm);
+            }
+		}catch (DaoManagerException e) {
+			String error="Query:'" + query+"'";
+			throw new DaoManagerException(error, e);
+		}finally{
+			closeConnection(connection);
+		}
+	}
+	
+	/**
+	 * This must include the where clause if necessary
+	 */
+	public List<T> getByConditions(String conditions,Object arg1) throws DaoManagerException{
+		Connection connection=getConnection();
+		String query=GET_ALL_QUERY+conditions;
+
+		try{
+			PreparedStatement pstm = getPrepareStatement(connection,query);	
+			set(pstm, 1, arg1, query);
+            try {
+                ResultSet rset = executeQuery(pstm,query);
+                try {
+                    List<T> list= new ArrayList<T>(rset.getFetchSize());
+                    
+                    while (rset.next()){
+                        T t=createFromResultSet(rset,query);
+                        list.add(t);
+                    }
+                    return list;
+				}catch (SQLException e){
+					String error="Query:'" + query+"'";
+					throw new DaoManagerException(error,e);
+                }finally{
+                    close(rset);
+                }                
+            }finally{
+                close(pstm);
+            }
+		}catch (DaoManagerException e) {
+			String error="Query:'" + query+"'";
+			throw new DaoManagerException(error, e);
+		}finally{
+			closeConnection(connection);
+		}
+	}
+	
+	/*
+	 * This must include the where clause if necessary
+	 */
+	public List<T> getByConditions(String conditions,Object arg1,Object arg2) throws DaoManagerException{
+		Connection connection=getConnection();
+		String query=GET_ALL_QUERY+conditions;
+
+		try{
+			PreparedStatement pstm = getPrepareStatement(connection,query);	
+			set(pstm, 1, arg1, query);
+			set(pstm, 2, arg2, query);
+			
             try {
                 ResultSet rset = executeQuery(pstm,query);
                 try {

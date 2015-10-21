@@ -8,7 +8,7 @@ package eu.ginere.jdbc.mysql.backend;
 
 import java.util.Date;
 
-import eu.ginere.jdbc.mysql.KeyDTO;
+import eu.ginere.base.util.dao.jdbc.KeyDTO;
 
 /**
  *

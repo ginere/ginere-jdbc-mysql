@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.KeyDTO;
+import eu.ginere.base.util.dao.jdbc.KeyDTO;
 
 /**
  * @author ventura

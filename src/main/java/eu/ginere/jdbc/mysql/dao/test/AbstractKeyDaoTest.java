@@ -3,7 +3,7 @@ package eu.ginere.jdbc.mysql.dao.test;
 import java.util.List;
 
 import eu.ginere.base.util.dao.DaoManagerException;
-import eu.ginere.jdbc.mysql.KeyDTO;
+import eu.ginere.base.util.dao.jdbc.KeyDTO;
 import eu.ginere.jdbc.mysql.dao.AbstractKeyDao;
 
 public abstract class AbstractKeyDaoTest<T extends KeyDTO> extends AbstractSQLDAOTest {
