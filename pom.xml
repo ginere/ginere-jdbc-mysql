@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.ginere</groupId>
 	<artifactId>ginere-jdbc-mysql</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Ginere jdbc dao for mysql</name>
@@ -45,7 +45,7 @@
 		<developerConnection>scm:git:https://github.com/ginere/ginere-jdbc-mysql</developerConnection>
 
 		<url>https://github.com/ginere/ginere-jdbc-mysql</url>
-		<tag>ginere-jdbc-mysql-1.0.2</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<organization>
