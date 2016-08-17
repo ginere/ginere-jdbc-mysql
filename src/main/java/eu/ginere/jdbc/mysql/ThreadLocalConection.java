@@ -47,6 +47,7 @@ public class ThreadLocalConection {
 		}	
 		
 		public void clean() {
+			log.warn("Cleaning threadlocal conextion thread:"+Thread.currentThread().getName());
 			closeInner(connection);
 			connection=null;
 			statementCached=null;

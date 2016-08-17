@@ -125,14 +125,14 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		+ " where "+columnName+"=? ";
 	}
 	
-	public void deleteFromOneColmunQuery(String query,String value)throws DaoManagerException{
+	public long deleteFromOneColmunQuery(String query,Object value)throws DaoManagerException{
 		Connection connection = getConnection();
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,
 														 query);
             try {
-                setString(pstm, 1, value, query);
-                executeUpdate(pstm, query);
+            	set(pstm, 1, value, query);
+                return executeUpdate(pstm, query);
             }finally {
                 close(pstm);
             }            
@@ -144,7 +144,7 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 		}
 	}
 	
-	public void deleteFromTwoColmunQuery(String query,Object arg1,Object arg2)throws DaoManagerException{
+	public long  deleteFromTwoColmunQuery(String query,Object arg1,Object arg2)throws DaoManagerException{
 		Connection connection = getConnection();
 		try {
 			PreparedStatement pstm = getPrepareStatement(connection,
@@ -153,7 +153,7 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
                 set(pstm, 1, arg1, query);
                 set(pstm, 2, arg2, query);
 
-                executeUpdate(pstm, query);
+                return executeUpdate(pstm, query);
             }finally {
                 close(pstm);
             }            
@@ -212,7 +212,8 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 
 	@Override
 	public void createorUpdateBackEnd() throws DaoManagerException{
-		if (getCodeVersion()>getInstalledVersion()){
+		if (getCodeVersion()>getInstalledVersion() ){
+			log.warn("Installing new backend version:'"+getClass()+"' the code version:"+getCodeVersion()+" the installed version:"+getInstalledVersion());
 			for (int i=getInstalledVersion()+1;i<=getCodeVersion();i++){
 				try {
 					upgradeBackendToVersion(i);
@@ -221,13 +222,24 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 					log.error("While upgrading :'"+this.getClass().getName()+"' to version:"+i,e);
 					throw new DaoManagerException("While upgrading :'"+this.getClass().getName()+"' to version:"+i,e);
 				}
-			}
+			}			
 		} else if (getCodeVersion() == 0){
 			// Por ejemplo un backend que ya no tiene scripts de creacion, borramos la version en base de datos
 			BackendManager.delete(getClass());
+		} else if (!existsTable()){
+			// the table has been removed update
+			log.warn("Installing new backend version:'"+getClass()+"' the code version:"+getCodeVersion());
+			for (int i=0+1;i<=getCodeVersion();i++){
+				try {
+					upgradeBackendToVersion(i);
+					BackendManager.setCurrentVersion(getClass(),i);
+				}catch(DaoManagerException e){
+					log.error("While upgrading :'"+this.getClass().getName()+"' to version:"+i,e);
+					throw new DaoManagerException("While upgrading :'"+this.getClass().getName()+"' to version:"+i,e);
+				}
+			}		
 		} else {
-			log.warn("For backend:'"+getClass()+"' the code version:"+getCodeVersion()+" is lower that the DB installed version:"+getInstalledVersion());
-			
+			log.info("backend not changed:'"+getClass()+"' the code version:"+getCodeVersion()+" the installed version:"+getInstalledVersion());
 		}
 	}
 
@@ -866,6 +878,42 @@ public abstract class AbstractDAO implements BackEndInterface,TestInterface {
 			closeConnection(connection);
 		}	
 	}
+	
+	public long executeUpdate(String query,Object arg1,Object arg2,Object arg3) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection,query);
+			set(pstm, 1, arg1, query);
+			set(pstm, 2, arg2, query);
+			set(pstm, 3, arg3, query);
+			try {
+				return executeUpdate(pstm, query);
+			}finally{
+				close(pstm);
+			}
+		} finally {
+			closeConnection(connection);
+		}	
+	}
+
+	public long executeUpdate(String query,Object array[]) throws DaoManagerException {
+		Connection connection = getConnection();
+		try {
+			PreparedStatement pstm = getPrepareStatement(connection,query);
+			
+			for (int i=0;i<array.length;i++){
+				set(pstm, i+1, array[i], query);
+			}
+			try {
+				return executeUpdate(pstm, query);
+			}finally{
+				close(pstm);
+			}
+		} finally {
+			closeConnection(connection);
+		}	
+	}
+	
 	protected static long executeUpdate(PreparedStatement pstm, 
                                         String query)throws DaoManagerException {
 		return MySQLDataBase.executeUpdate(pstm,query);

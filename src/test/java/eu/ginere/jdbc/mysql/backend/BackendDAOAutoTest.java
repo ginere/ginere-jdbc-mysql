@@ -1,14 +1,10 @@
 package eu.ginere.jdbc.mysql.backend;
 
-import javax.sql.DataSource;
-
 import org.junit.Test;
 
 import eu.ginere.base.util.dao.DaoManagerException;
 import eu.ginere.jdbc.mysql.MySQLDataBase;
 import eu.ginere.jdbc.mysql.MySQLDatabaseUtils;
-import eu.ginere.jdbc.mysql.backend.BackendDAO;
-import eu.ginere.jdbc.mysql.backend.BackendInfo;
 import eu.ginere.jdbc.mysql.dao.test.AbstractKeyDaoTest;
 
 public class BackendDAOAutoTest extends AbstractKeyDaoTest<BackendInfo>{
